@@ -24,6 +24,15 @@ class Polymer:
 
         self.__links = arr_links
 
+    def __hash__(self):
+        return 0
+
+    def __eq__(self, other):
+        return (self.__links == other._Polymer__links).all()
+
+    def __ne__(self, other):
+        return not self == other
+
     @classmethod
     def all_curled_up(cls, link_count):
         """Polymer.all_curled_up(len) -> a Polymer
