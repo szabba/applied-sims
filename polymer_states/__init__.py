@@ -6,9 +6,7 @@ import numpy
 
 
 # Link states
-UP, DOWN = (0, 1), (0, -1)
-LEFT, RIGHT = (-1, 0), (1, 0)
-SLACK = (0, 0)
+UP, DOWN, LEFT, RIGHT, SLACK = [1 << i for i in range(5)]
 
 
 class Polymer:
