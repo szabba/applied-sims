@@ -88,5 +88,9 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
     # TODO: Hernia annihilation
     # TODO: Rubinstein-Duke moves
+    # TODO: End-link Rubinstein-Duke moves
     # TODO: Barrier crossings
     # TODO: Hernia migrations
+    # TODO: End-link migrations
+
+
