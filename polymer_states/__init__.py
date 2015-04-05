@@ -42,3 +42,9 @@ class Polymer:
         """
 
         return cls([SLACK] * link_count)
+
+
+HERNIAS = {
+    Polymer([UP, DOWN]), Polymer([DOWN, UP]),
+    Polymer([LEFT, RIGHT]), Polymer([RIGHT, LEFT]),
+}
