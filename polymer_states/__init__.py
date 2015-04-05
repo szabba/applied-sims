@@ -28,8 +28,8 @@ class Polymer:
     def all_curled_up(cls, link_count):
         """Polymer.all_curled_up(len) -> a Polymer
 
-        Creates a Polymer that has len links (ie, len + 1 reptons) and all
-        reptons placed in a single cell.
+        Creates a Polymer that has link_count links (ie, link_count + 1 reptons)
+        and all reptons placed in a single cell.
         """
 
         return cls([SLACK] * link_count)
