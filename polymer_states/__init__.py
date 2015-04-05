@@ -16,3 +16,17 @@ class Polymer:
 
     def __init__(self, links):
         self.__links = numpy.array(links)
+
+    @classmethod
+    def all_curled_up(cls, link_count):
+        """Polymer.all_curled_up(len) -> a Polymer
+
+        Creates a Polymer that has len links (ie, len + 1 reptons) and all
+        reptons placed in a single cell.
+        """
+
+        if link_count < 1:
+            raise ValueError(("polymer chain must contain at least one "
+                              + "link, {} given").format(link_count))
+
+        return cls([SLACK] * link_count)
