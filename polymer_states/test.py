@@ -27,3 +27,9 @@ class PolymerTest(unittest.TestCase):
         polymer_two = Polymer(reversed(links))
 
         self.assertNotEqual(polymer_one, polymer_two)
+
+    def test_polymers_with_different_length_are_not_equal(self):
+        polymer_one = Polymer.all_curled_up(2)
+        polymer_two = Polymer.all_curled_up(3)
+
+        self.assertNotEqual(polymer_one, polymer_two)

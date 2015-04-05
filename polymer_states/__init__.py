@@ -26,7 +26,9 @@ class Polymer:
         return 0
 
     def __eq__(self, other):
-        return (self.__links == other._Polymer__links).all()
+        if self.__links.shape != other._Polymer__links.shape:
+            return False
+        return numpy.equal(self.__links, other._Polymer__links).all()
 
     def __ne__(self, other):
         return not self == other
