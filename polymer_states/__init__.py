@@ -16,13 +16,13 @@ class Polymer:
 
     def __init__(self, links):
 
-        links = numpy.array(links)
+        arr_links = numpy.array(list(links))
 
-        if len(links) < 1:
+        if len(arr_links) < 1:
             raise ValueError(("polymer chain must contain at least one "
-                              + "link, {} given").format(len(links)))
+                              + "link, {} given").format(len(arr_links)))
 
-        self.__links = links
+        self.__links = arr_links
 
     @classmethod
     def all_curled_up(cls, link_count):
