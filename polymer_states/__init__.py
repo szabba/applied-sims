@@ -43,6 +43,27 @@ class Polymer:
 
         return cls([SLACK] * link_count)
 
+    def contains_hernia(self):
+        """P.contains_hernia() -> a bool
+
+        Returns True if the Polymer contains a hernia.
+        """
+        for pair in self.link_pairs():
+            if Polymer.is_hernia(pair):
+                return True
+        return False
+
+    @staticmethod
+    def is_hernia(pair):
+        """Polymer.is_hernia(pair) -> a bool
+
+        Returns True if the given pair of links forms a hernia.
+        """
+        return set(pair) in [{UP, DOWN}, {LEFT, RIGHT}]
+
+    def link_pairs(self):
+        return zip(self.__links, self.__links[1:])
+
 
 HERNIAS = {
     Polymer([UP, DOWN]), Polymer([DOWN, UP]),

@@ -33,3 +33,13 @@ class PolymerTest(unittest.TestCase):
         polymer_two = Polymer.all_curled_up(3)
 
         self.assertNotEqual(polymer_one, polymer_two)
+
+    def test_polymer_knows_it_contains_hernia(self):
+        polymer = Polymer([UP, DOWN, SLACK])
+
+        self.assertTrue(polymer.contains_hernia())
+
+    def test_polymer_knows_it_does_not_contain_hernia(self):
+        polymer = Polymer([UP, SLACK, DOWN])
+
+        self.assertFalse(polymer.contains_hernia())
