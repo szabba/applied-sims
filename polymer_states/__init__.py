@@ -27,11 +27,24 @@ class Link(int):
     def is_taut(self):
         return not self.is_slack()
 
+    def perpendicular_to(self, other):
+        return (self, other) in Link.PERPENDICULAR_PAIRS
+
 
 Link.LINKS = {Link(i) for i in Link.VALID_LINK_VALUES}
 Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = Link.LINKS
 
 Link.TAUT_LINKS = {link for link in Link.LINKS if link.is_taut()}
+Link.PERPENDICULAR_PAIRS = {
+    (Link.UP, Link.LEFT),
+    (Link.UP, Link.RIGHT),
+    (Link.DOWN, Link.LEFT),
+    (Link.DOWN, Link.RIGHT),
+    (Link.LEFT, Link.UP),
+    (Link.LEFT, Link.DOWN),
+    (Link.RIGHT, Link.UP),
+    (Link.RIGHT, Link.DOWN),
+}
 
 
 
