@@ -129,7 +129,19 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIsSubsetOf(with_slack_moved, reachable)
 
-    # TODO: End-link Rubinstein-Duke moves
+    def test_first_link_can_go_from_slack_to_taut(self):
+        polymer = Polymer([Link.SLACK, Link. RIGHT])
+        with_end_slack_moved = {
+            Polymer([Link.RIGHT, Link.RIGHT]),
+            Polymer([Link.LEFT, Link.RIGHT]),
+            Polymer([Link.UP, Link.RIGHT]),
+            Polymer([Link.DOWN, Link.RIGHT]),
+        }
+
+        reachable = polymer.reachable_from()
+
+        self.assertIsSubsetOf(with_end_slack_moved, reachable)
+
     # TODO: Barrier crossings
     # TODO: Hernia migrations
     # TODO: End-link migrations
