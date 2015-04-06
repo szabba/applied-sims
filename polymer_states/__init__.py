@@ -20,8 +20,9 @@ class Link(int):
     def is_taut(self):
         return not self.is_slack()
 
-Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = \
-    map(Link, Link.VALID_LINK_VALUES)
+
+Link.LINKS = {Link(i) for i in Link.VALID_LINK_VALUES}
+Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = Link.LINKS
 
 
 
