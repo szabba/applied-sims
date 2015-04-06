@@ -4,7 +4,6 @@
 
 import unittest
 from unittest.util import safe_repr
-import contextlib
 from polymer_states import Polymer, SLACK, UP, DOWN, LEFT, RIGHT, HERNIAS
 
 
@@ -54,6 +53,16 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIsInstance(reachable, set)
 
+    def test_polymer_knows_it_contains_hernia(self):
+        polymer = Polymer([UP, DOWN, SLACK])
+
+        self.assertTrue(polymer.contains_hernia())
+
+    def test_polymer_knows_it_does_not_contain_hernia(self):
+        polymer = Polymer([UP, SLACK, DOWN])
+
+        self.assertFalse(polymer.contains_hernia())
+
     def test_polymer_reachable_set_contains_self(self):
         polymer = Polymer.all_curled_up(3)
 
@@ -76,21 +85,9 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertTrue(
             any(polymer.contains_hernia() for polymer in reachable))
 
-    def test_polymer_knows_it_contains_hernia(self):
-        polymer = Polymer([UP, DOWN, SLACK])
-
-        self.assertTrue(polymer.contains_hernia())
-
-    def test_polymer_knows_it_does_not_contain_hernia(self):
-        polymer = Polymer([UP, SLACK, DOWN])
-
-        self.assertFalse(polymer.contains_hernia())
-
     # TODO: Hernia annihilation
     # TODO: Rubinstein-Duke moves
     # TODO: End-link Rubinstein-Duke moves
     # TODO: Barrier crossings
     # TODO: Hernia migrations
     # TODO: End-link migrations
-
-
