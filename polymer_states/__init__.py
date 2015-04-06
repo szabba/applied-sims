@@ -24,6 +24,8 @@ class Link(int):
 Link.LINKS = {Link(i) for i in Link.VALID_LINK_VALUES}
 Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = Link.LINKS
 
+Link.TAUT_LINKS = {link for link in Link.LINKS if link.is_taut()}
+
 
 
 class Polymer:
@@ -118,7 +120,7 @@ class Polymer:
 
     def __make_slack_end_taut(self, i):
         out = set()
-        for taut_link in [Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT]:
+        for taut_link in Link.TAUT_LINKS:
             new_links = (taut_link, ) + self.__links[1:]
             out.add(Polymer(new_links))
         return out
