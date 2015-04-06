@@ -132,6 +132,9 @@ class Polymer:
     def first_pair(self, i):
         return i == 0
 
+    def last_pair(self, i):
+        return i + 2 == len(self.__links)
+
     @staticmethod
     def is_hernia(pair):
         """Polymer.is_hernia(pair) -> a bool
