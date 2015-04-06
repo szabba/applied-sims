@@ -63,6 +63,16 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertFalse(polymer.contains_hernia())
 
+    def test_polymer_knows_it_contains_two_consecutive_slacks(self):
+        polymer_with_slack_pair = Polymer([UP, SLACK, SLACK])
+
+        self.assertTrue(polymer_with_slack_pair.contains_slack_pair())
+
+    def test_polymer_knows_it_does_not_contain_two_consecutive_slacks(self):
+        polymer_wihtout_slack_pair = Polymer([UP, UP, LEFT, RIGHT, DOWN])
+
+        self.assertFalse(polymer_wihtout_slack_pair.contains_slack_pair())
+
     def test_polymer_reachable_set_contains_self(self):
         polymer = Polymer.all_curled_up(3)
 

@@ -50,16 +50,20 @@ class Polymer:
                 reachable.update(self.__create_hernias_at(i))
         return reachable
 
-
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
 
         Returns True if the Polymer contains a hernia.
         """
-        for pair in self.link_pairs():
-            if Polymer.is_hernia(pair):
-                return True
-        return False
+        return any(Polymer.is_hernia(pair) for pair in self.link_pairs())
+
+    def contains_slack_pair(self):
+        """P.contains_slack_pair() -> a bool
+
+        Returns True if the Polymer contains a pair of consecutive slacks that
+        could be turned into a hernia.
+        """
+        return any(Polymer.both_slacks(pair) for pair in self.link_pairs())
 
     def __create_hernias_at(self, i):
         out = set()
@@ -71,6 +75,9 @@ class Polymer:
             out.add(Polymer(new_links))
         return out
 
+    def link_pairs(self):
+        return zip(self.__links, self.__links[1:])
+
     @staticmethod
     def is_hernia(pair):
         """Polymer.is_hernia(pair) -> a bool
@@ -78,10 +85,6 @@ class Polymer:
         Returns True if the given pair of links forms a hernia.
         """
         return set(pair) in [{UP, DOWN}, {LEFT, RIGHT}]
-
-    def link_pairs(self):
-        return zip(self.__links, self.__links[1:])
-
     @staticmethod
     def both_slacks(pair):
         return pair == (SLACK, SLACK)
