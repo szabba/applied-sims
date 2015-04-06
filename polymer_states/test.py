@@ -118,7 +118,17 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertTrue(
             any(polymer.contains_slack_pair() for polymer in reachable))
 
-    # TODO: Rubinstein-Duke moves
+    def test_repton_can_move_between_cells_when_it_has_one_slack_link(self):
+        polymer = Polymer([Link.UP, Link.LEFT, Link.SLACK, Link.LEFT, Link.DOWN])
+        with_slack_moved = {
+            Polymer([Link.UP, Link.SLACK, Link.LEFT, Link.LEFT, Link.DOWN]),
+            Polymer([Link.UP, Link.LEFT, Link.LEFT, Link.SLACK, Link.DOWN]),
+        }
+
+        reachable = polymer.reachable_from()
+
+        self.assertIsSubsetOf(with_slack_moved, reachable)
+
     # TODO: End-link Rubinstein-Duke moves
     # TODO: Barrier crossings
     # TODO: Hernia migrations

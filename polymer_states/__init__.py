@@ -58,6 +58,8 @@ class Polymer:
         for i, pair in enumerate(self.link_pairs()):
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i))
+            elif Link.SLACK in pair:
+                reachable.add(self.__reptate_at(i))
             elif Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
         return reachable
@@ -90,6 +92,11 @@ class Polymer:
     def __annihilate_hernia_at(self, i):
         new_links = self.__links.copy()
         new_links[i:i+2] = Link.SLACK
+        return Polymer(new_links)
+
+    def __reptate_at(self, i):
+        new_links = self.__links.copy()
+        new_links[i], new_links[i + 1] = new_links[i + 1], new_links[i]
         return Polymer(new_links)
 
     def link_pairs(self):
