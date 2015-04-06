@@ -95,7 +95,14 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertTrue(
             any(polymer.contains_hernia() for polymer in reachable))
 
-    # TODO: Hernia annihilation
+    def test_hernia_generates_polymer_with_two_slacks(self):
+        hernia = Polymer([UP, DOWN])
+
+        reachable = hernia.reachable_from()
+
+        self.assertTrue(
+            any(polymer.contains_slack_pair() for polymer in reachable))
+
     # TODO: Rubinstein-Duke moves
     # TODO: End-link Rubinstein-Duke moves
     # TODO: Barrier crossings
