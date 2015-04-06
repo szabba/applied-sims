@@ -47,6 +47,12 @@ Link.PERPENDICULAR_PAIRS = {
 }
 
 
+def swap_elements(t, i, j):
+    return tuple(
+        elem if k not in (i, j) else
+        t[i] if k == j else t[j]
+        for k, elem in enumerate(t))
+
 
 class Polymer:
     """A chain of N links."""
