@@ -2,8 +2,6 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import numpy
-
 
 class Link(int):
     """A polymer chain link on a 2D lattice."""
@@ -76,13 +74,20 @@ class Polymer:
         reachable = {self}
         for i, pair in enumerate(self.link_pairs()):
             first_link, second_link = pair
+
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i))
-            elif self.first_pair(i) and first_link.is_slack():
-                reachable.update(self.__make_slack_end_taut(i))
-            elif Link.SLACK in pair:
+
+            if Link.SLACK in pair:
                 reachable.add(self.__reptate_at(i))
-            elif Polymer.is_hernia(pair):
+
+            if self.first_pair(i) and first_link.is_slack():
+                reachable.update(self.__make_slack_end_taut(i))
+
+            if self.last_pair(i) and second_link.is_slack():
+                reachable.update(self.__make_slack_end_taut(i))
+
+            if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
         return reachable
 
@@ -135,7 +140,10 @@ class Polymer:
         for taut_link in Link.TAUT_LINKS:
             if self.first_pair(i):
                 new_links = (taut_link, ) + self.__links[1:]
-            out.add(Polymer(new_links))
+                out.add(Polymer(new_links))
+            if self.last_pair(i):
+                new_links = self.__links[:-1] + (taut_link, )
+                out.add(Polymer(new_links))
         return out
 
     def link_pairs(self):

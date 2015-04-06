@@ -131,7 +131,7 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
     def test_first_link_can_go_from_slack_to_taut(self):
         polymer = Polymer([Link.SLACK, Link. RIGHT])
-        with_end_slack_moved = {
+        with_first_link_changed = {
             Polymer([Link.RIGHT, Link.RIGHT]),
             Polymer([Link.LEFT, Link.RIGHT]),
             Polymer([Link.UP, Link.RIGHT]),
@@ -140,7 +140,20 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         reachable = polymer.reachable_from()
 
-        self.assertIsSubsetOf(with_end_slack_moved, reachable)
+        self.assertIsSubsetOf(with_first_link_changed, reachable)
+
+    def test_last_link_can_go_from_slack_to_taut(self):
+        polymer = Polymer([Link.RIGHT, Link.SLACK])
+        with_last_link_changed = {
+            Polymer([Link.RIGHT, Link.RIGHT]),
+            Polymer([Link.RIGHT, Link.LEFT]),
+            Polymer([Link.RIGHT, Link.UP]),
+            Polymer([Link.RIGHT, Link.DOWN]),
+        }
+
+        reachable = polymer.reachable_from()
+
+        self.assertIsSubsetOf(with_last_link_changed, reachable)
 
     # TODO: Barrier crossings
     # TODO: Hernia migrations
