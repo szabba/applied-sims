@@ -14,6 +14,15 @@ class Link(int):
         if value not in Link.VALID_LINK_VALUES:
             raise ValueError("invalid link value {}".format(value))
 
+    def __repr__(self):
+        return {
+            Link.UP: 'Link.UP',
+            Link.DOWN: 'Link.DOWN',
+            Link.LEFT: 'Link.LEFT',
+            Link.RIGHT: 'Link.RIGHT',
+            Link.SLACK: 'Link.SLACK',
+        }[self]
+
     def is_slack(self):
         return self == Link.SLACK
 
@@ -40,6 +49,9 @@ class Polymer:
                               + "link, {} given").format(len(links)))
 
         self.__links = tuple(map(Link, links))
+
+    def __repr__(self):
+        return 'Polymer([{}])'.format(', '.join(map(repr, self.__links)))
 
     def __hash__(self):
         return hash(self.__links)
