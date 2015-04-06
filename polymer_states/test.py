@@ -4,7 +4,7 @@
 
 import unittest
 from unittest.util import safe_repr
-from polymer_states import Polymer, SLACK, UP, DOWN, LEFT, RIGHT, HERNIAS
+from polymer_states import Polymer, HERNIAS, Link
 
 
 class SetAssertions(unittest.TestCase):
@@ -18,6 +18,21 @@ class SetAssertions(unittest.TestCase):
             self.fail(self._formatMessage(msg, standardMsg))
 
 
+class LinkTest(unittest.TestCase):
+
+    def test_value_error_for_invalid_link_values(self):
+        self.assertRaises(ValueError, Link, -1)
+        self.assertRaises(ValueError, Link, 32)
+
+    def test_no_error_for_valid_link_values(self):
+        for valid_link_value in Link.VALID_LINK_VALUES:
+            Link(valid_link_value)
+
+    def test_link_equal_to_its_value(self):
+        for valid_link_value in Link.VALID_LINK_VALUES:
+            self.assertEqual(Link(valid_link_value), valid_link_value)
+
+
 class PolymerTest(SetAssertions, unittest.TestCase):
 
     def test_value_error_for_zero_links(self):
@@ -27,14 +42,14 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertRaises(ValueError, Polymer.all_curled_up, 0)
 
     def test_polymers_with_equal_links_are_equal(self):
-        links = [UP, LEFT, RIGHT, DOWN, SLACK, UP]
+        links = [Link.UP, Link.LEFT, Link.RIGHT, Link.DOWN, Link.SLACK, Link.UP]
         polymer_one = Polymer(links)
         polymer_two = Polymer(links)
 
         self.assertEqual(polymer_one, polymer_two)
 
     def test_polymers_with_different_links_are_not_equal(self):
-        links = [UP, LEFT, RIGHT, DOWN, SLACK, UP]
+        links = [Link.UP, Link.LEFT, Link.RIGHT, Link.DOWN, Link.SLACK, Link.UP]
         polymer_one = Polymer(links)
         polymer_two = Polymer(reversed(links))
 
@@ -54,22 +69,22 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertIsInstance(reachable, set)
 
     def test_polymer_knows_it_contains_hernia(self):
-        polymer = Polymer([UP, DOWN, SLACK])
+        polymer = Polymer([Link.UP, Link.DOWN, Link.SLACK])
 
         self.assertTrue(polymer.contains_hernia())
 
     def test_polymer_knows_it_does_not_contain_hernia(self):
-        polymer = Polymer([UP, SLACK, DOWN])
+        polymer = Polymer([Link.UP, Link.SLACK, Link.DOWN])
 
         self.assertFalse(polymer.contains_hernia())
 
     def test_polymer_knows_it_contains_two_consecutive_slacks(self):
-        polymer_with_slack_pair = Polymer([UP, SLACK, SLACK])
+        polymer_with_slack_pair = Polymer([Link.UP, Link.SLACK, Link.SLACK])
 
         self.assertTrue(polymer_with_slack_pair.contains_slack_pair())
 
     def test_polymer_knows_it_does_not_contain_two_consecutive_slacks(self):
-        polymer_wihtout_slack_pair = Polymer([UP, UP, LEFT, RIGHT, DOWN])
+        polymer_wihtout_slack_pair = Polymer([Link.UP, Link.UP, Link.LEFT, Link.RIGHT, Link.DOWN])
 
         self.assertFalse(polymer_wihtout_slack_pair.contains_slack_pair())
 
@@ -96,7 +111,7 @@ class PolymerTest(SetAssertions, unittest.TestCase):
             any(polymer.contains_hernia() for polymer in reachable))
 
     def test_hernia_generates_polymer_with_two_slacks(self):
-        hernia = Polymer([UP, DOWN])
+        hernia = Polymer([Link.UP, Link.DOWN])
 
         reachable = hernia.reachable_from()
 

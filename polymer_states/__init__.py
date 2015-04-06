@@ -5,8 +5,18 @@
 import numpy
 
 
-# Link states
-UP, DOWN, LEFT, RIGHT, SLACK = [1 << i for i in range(5)]
+class Link(int):
+    """A polymer chain link on a 2D lattice."""
+
+    VALID_LINK_VALUES = {1 << i for i in range(5)}
+
+    def __init__(self, value):
+        if value not in Link.VALID_LINK_VALUES:
+            raise ValueError("invalid link value {}".format(value))
+
+Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = \
+    map(Link, Link.VALID_LINK_VALUES)
+
 
 
 class Polymer:
@@ -14,7 +24,7 @@ class Polymer:
 
     def __init__(self, links):
 
-        arr_links = numpy.array(list(links))
+        arr_links = numpy.array(list(map(Link, links)))
 
         if len(arr_links) < 1:
             raise ValueError(("polymer chain must contain at least one "
@@ -41,7 +51,7 @@ class Polymer:
         and all reptons placed in a single cell.
         """
 
-        return cls([SLACK] * link_count)
+        return cls([Link.SLACK] * link_count)
 
     def reachable_from(self):
         reachable = {self}
@@ -69,8 +79,8 @@ class Polymer:
 
     def __create_hernias_at(self, i):
         out = set()
-        for first, second in [(UP, DOWN), (DOWN, UP),
-                              (LEFT, RIGHT), (RIGHT, LEFT)]:
+        for first, second in [(Link.UP, Link.DOWN), (Link.DOWN, Link.UP),
+                              (Link.LEFT, Link.RIGHT), (Link.RIGHT, Link.LEFT)]:
             new_links = self.__links.copy()
             new_links[i] = first
             new_links[i + 1] = second
@@ -79,7 +89,7 @@ class Polymer:
 
     def __annihilate_hernia_at(self, i):
         new_links = self.__links.copy()
-        new_links[i:i+2] = SLACK
+        new_links[i:i+2] = Link.SLACK
         return Polymer(new_links)
 
     def link_pairs(self):
@@ -91,14 +101,14 @@ class Polymer:
 
         Returns True if the given pair of links forms a hernia.
         """
-        return set(pair) in [{UP, DOWN}, {LEFT, RIGHT}]
+        return set(pair) in [{Link.UP, Link.DOWN}, {Link.LEFT, Link.RIGHT}]
 
     @staticmethod
     def both_slacks(pair):
-        return pair == (SLACK, SLACK)
+        return pair == (Link.SLACK, Link.SLACK)
 
 
 HERNIAS = {
-    Polymer([UP, DOWN]), Polymer([DOWN, UP]),
-    Polymer([LEFT, RIGHT]), Polymer([RIGHT, LEFT]),
+    Polymer([Link.UP, Link.DOWN]), Polymer([Link.DOWN, Link.UP]),
+    Polymer([Link.LEFT, Link.RIGHT]), Polymer([Link.RIGHT, Link.LEFT]),
 }
