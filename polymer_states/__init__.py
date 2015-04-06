@@ -108,6 +108,9 @@ class Polymer:
 
             if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
+
+            if first_link.perpendicular_to(second_link):
+                reachable.add(self.__flip_at(i))
         return reachable
 
     def contains_hernia(self):
@@ -146,13 +149,7 @@ class Polymer:
         return Polymer(new_links)
 
     def __reptate_at(self, i):
-        new_links = (
-            self.__links[j + 1] if j == i
-            else self.__links[j - 1] if j == i + 1
-            else link
-            for j, link in enumerate(self.__links)
-        )
-        return Polymer(new_links)
+        return Polymer(swap_elements(self.__links, i, i + 1))
 
     def __make_slack_end_taut(self, i):
         out = set()
@@ -164,6 +161,9 @@ class Polymer:
                 new_links = self.__links[:-1] + (taut_link, )
                 out.add(Polymer(new_links))
         return out
+
+    def __flip_at(self, i):
+        return Polymer(swap_elements(self.__links, i, i + 1))
 
     def link_pairs(self):
         return zip(self.__links, self.__links[1:])

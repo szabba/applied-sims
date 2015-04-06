@@ -155,6 +155,13 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIsSubsetOf(with_last_link_changed, reachable)
 
-    # TODO: Barrier crossings
+    def test_right_angle_link_pairs_can_be_flipped_over(self):
+        polymer = Polymer([Link.UP, Link.RIGHT])
+        flipped = Polymer([Link.RIGHT, Link.UP])
+
+        reachable = polymer.reachable_from()
+
+        self.assertIn(flipped, reachable)
+
     # TODO: Hernia migrations
     # TODO: End-link migrations
