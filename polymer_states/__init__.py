@@ -66,7 +66,7 @@ class Polymer:
             first_link, second_link = pair
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i))
-            elif i == 0 and first_link.is_slack():
+            elif self.first_pair(i) and first_link.is_slack():
                 reachable.update(self.__make_slack_end_taut(i))
             elif Link.SLACK in pair:
                 reachable.add(self.__reptate_at(i))
@@ -121,12 +121,16 @@ class Polymer:
     def __make_slack_end_taut(self, i):
         out = set()
         for taut_link in Link.TAUT_LINKS:
-            new_links = (taut_link, ) + self.__links[1:]
+            if self.first_pair(i):
+                new_links = (taut_link, ) + self.__links[1:]
             out.add(Polymer(new_links))
         return out
 
     def link_pairs(self):
         return zip(self.__links, self.__links[1:])
+
+    def first_pair(self, i):
+        return i == 0
 
     @staticmethod
     def is_hernia(pair):
