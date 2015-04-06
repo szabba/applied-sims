@@ -196,6 +196,8 @@ class Polymer:
         return pair == (Link.SLACK, Link.SLACK)
 
 
+HERNIA_PAIRS = {(link, link.opposite()) for link in Link.TAUT_LINKS}
+
 HERNIAS = {
     Polymer([Link.UP, Link.DOWN]), Polymer([Link.DOWN, Link.UP]),
     Polymer([Link.LEFT, Link.RIGHT]), Polymer([Link.RIGHT, Link.LEFT]),
