@@ -30,6 +30,15 @@ class Link(int):
     def perpendicular_to(self, other):
         return (self, other) in Link.PERPENDICULAR_PAIRS
 
+    def opposite(self):
+        return {
+            Link.UP: Link.DOWN,
+            Link.DOWN: Link.UP,
+            Link.LEFT: Link.RIGHT,
+            Link.RIGHT: Link.LEFT,
+            Link.SLACK: Link.SLACK,
+        }[self]
+
 
 Link.LINKS = {Link(i) for i in Link.VALID_LINK_VALUES}
 Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = Link.LINKS
