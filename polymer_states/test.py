@@ -163,5 +163,11 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIn(flipped, reachable)
 
-    # TODO: Hernia migrations
+    def test_hernias_can_change_bend_direction_to_any_other(self):
+        polymer = Polymer([Link.UP, Link.DOWN])
+
+        reachable = polymer.reachable_from()
+
+        self.assertIsSubsetOf(HERNIAS, reachable)
+
     # TODO: End-link migrations

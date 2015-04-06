@@ -117,9 +117,11 @@ class Polymer:
 
             if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
+                reachable.update(self.__change_hernia_bend_direction(i))
 
             if first_link.perpendicular_to(second_link):
                 reachable.add(self.__flip_at(i))
+
         return reachable
 
     def contains_hernia(self):
@@ -173,6 +175,18 @@ class Polymer:
 
     def __flip_at(self, i):
         return Polymer(swap_elements(self.__links, i, i + 1))
+
+    def __change_hernia_bend_direction(self, i):
+        out = set()
+        for first_link, second_link in HERNIA_PAIRS:
+            new_links = (
+                first_link if j == i
+                else second_link if j == i + 1
+                else link
+                for j, link in enumerate(self.__links)
+            )
+            out.add(Polymer(new_links))
+        return out
 
     def link_pairs(self):
         return zip(self.__links, self.__links[1:])
