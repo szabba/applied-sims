@@ -24,21 +24,19 @@ class Polymer:
 
     def __init__(self, links):
 
-        arr_links = numpy.array(list(map(Link, links)))
+        links = tuple(links)
 
-        if len(arr_links) < 1:
+        if len(links) < 1:
             raise ValueError(("polymer chain must contain at least one "
-                              + "link, {} given").format(len(arr_links)))
+                              + "link, {} given").format(len(links)))
 
-        self.__links = arr_links
+        self.__links = tuple(map(Link, links))
 
     def __hash__(self):
-        return 0
+        return hash(self.__links)
 
     def __eq__(self, other):
-        if self.__links.shape != other._Polymer__links.shape:
-            return False
-        return numpy.equal(self.__links, other._Polymer__links).all()
+        return self.__links == other._Polymer__links
 
     def __ne__(self, other):
         return not self == other
@@ -86,27 +84,35 @@ class Polymer:
         out = set()
         for first, second in [(Link.UP, Link.DOWN), (Link.DOWN, Link.UP),
                               (Link.LEFT, Link.RIGHT), (Link.RIGHT, Link.LEFT)]:
-            new_links = self.__links.copy()
-            new_links[i] = first
-            new_links[i + 1] = second
+            new_links = (
+                first if j == i
+                else second if j == i + 1
+                else link
+                for j, link in enumerate(self.__links)
+            )
             out.add(Polymer(new_links))
         return out
 
     def __annihilate_hernia_at(self, i):
-        new_links = self.__links.copy()
-        new_links[i:i+2] = Link.SLACK
+        new_links = (
+            Link.SLACK if j in (i, i + 1) else link
+            for j, link in enumerate(self.__links)
+        )
         return Polymer(new_links)
 
     def __reptate_at(self, i):
-        new_links = self.__links.copy()
-        new_links[i], new_links[i + 1] = new_links[i + 1], new_links[i]
+        new_links = (
+            self.__links[j + 1] if j == i
+            else self.__links[j - 1] if j == i + 1
+            else link
+            for j, link in enumerate(self.__links)
+        )
         return Polymer(new_links)
 
     def __make_slack_end_taut(self, i):
         out = set()
         for taut_link in [Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT]:
-            new_links = self.__links.copy()
-            new_links[i] = taut_link
+            new_links = (taut_link, ) + self.__links[1:]
             out.add(Polymer(new_links))
         return out
 
