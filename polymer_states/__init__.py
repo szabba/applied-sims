@@ -14,6 +14,12 @@ class Link(int):
         if value not in Link.VALID_LINK_VALUES:
             raise ValueError("invalid link value {}".format(value))
 
+    def is_slack(self):
+        return self == Link.SLACK
+
+    def is_taut(self):
+        return not self.is_slack()
+
 Link.UP, Link.DOWN, Link.LEFT, Link.RIGHT, Link.SLACK = \
     map(Link, Link.VALID_LINK_VALUES)
 
@@ -54,10 +60,10 @@ class Polymer:
     def reachable_from(self):
         reachable = {self}
         for i, pair in enumerate(self.link_pairs()):
-            first, second = pair
+            first_link, second_link = pair
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i))
-            elif i == 0 and first == Link.SLACK:
+            elif i == 0 and first_link.is_slack():
                 reachable.update(self.__make_slack_end_taut(i))
             elif Link.SLACK in pair:
                 reachable.add(self.__reptate_at(i))
