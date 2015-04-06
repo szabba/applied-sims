@@ -155,6 +155,8 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIsSubsetOf(with_last_link_changed, reachable)
 
+    # TODO: End links going taut -> slack
+
     def test_right_angle_link_pairs_can_be_flipped_over(self):
         polymer = Polymer([Link.UP, Link.RIGHT])
         flipped = Polymer([Link.RIGHT, Link.UP])
