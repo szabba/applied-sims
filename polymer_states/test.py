@@ -187,3 +187,14 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         self.assertIsSubsetOf(HERNIAS, reachable)
 
     # TODO: End-link migrations
+    def test_end_link_can_become_anything(self):
+        polymer = Polymer([Link.SLACK, Link.UP, Link.RIGHT])
+        with_end_links_changed = {
+            Polymer([link, Link.UP, Link.RIGHT]) for link in Link.LINKS
+        }.union({
+            Polymer([Link.SLACK, Link.UP, link]) for link in Link.LINKS
+        })
+
+        reachable = polymer.reachable_from()
+
+        self.assertIsSubsetOf(with_end_links_changed, reachable)
