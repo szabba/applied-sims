@@ -155,7 +155,6 @@ class PolymerTest(SetAssertions, unittest.TestCase):
 
         self.assertIsSubsetOf(with_last_link_changed, reachable)
 
-    # TODO: End links going taut -> slack
     def test_first_link_can_become_slack_when_taut(self):
         polymer = Polymer([Link.UP, Link.LEFT, Link.UP])
         with_first_slacked = Polymer([Link.SLACK, Link.LEFT, Link.UP])
