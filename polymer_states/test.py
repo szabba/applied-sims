@@ -197,3 +197,7 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         reachable = polymer.reachable_from()
 
         self.assertIsSubsetOf(with_end_links_changed, reachable)
+
+    # TODO: Make reachable_from return a dict indexed by polymers and containing sets of probability rates.
+    # TODO: Build up a TransitionMatrix.
+    # TODO: Change Polymer internals to deal with a wall and pore.
