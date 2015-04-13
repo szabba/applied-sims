@@ -109,8 +109,11 @@ class Polymer:
             if Link.SLACK in pair:
                 reachable.add(self.__reptate_at(i))
 
-            if self.first_pair(i) and first_link.is_slack():
-                reachable.update(self.__make_slack_end_taut(i))
+            if self.first_pair(i):
+                if first_link.is_slack():
+                    reachable.update(self.__make_slack_end_taut(i))
+                else:
+                    reachable.add(self.__make_taut_end_go_slack(i))
 
             if self.last_pair(i) and second_link.is_slack():
                 reachable.update(self.__make_slack_end_taut(i))
@@ -172,6 +175,12 @@ class Polymer:
                 new_links = self.__links[:-1] + (taut_link, )
                 out.add(Polymer(new_links))
         return out
+
+    def __make_taut_end_go_slack(self, i):
+        return Polymer([
+            Link.SLACK if j == i else link
+            for j, link in enumerate(self.__links)
+        ])
 
     def __flip_at(self, i):
         return Polymer(swap_elements(self.__links, i, i + 1))
