@@ -100,6 +100,7 @@ class Polymer:
 
     def reachable_from(self):
         reachable = {self}
+        reachable.update(self.__wiggle_end_links())
         for i, pair in enumerate(self.link_pairs()):
             first_link, second_link = pair
 
@@ -108,18 +109,6 @@ class Polymer:
 
             if Link.SLACK in pair:
                 reachable.add(self.__reptate_at(i))
-
-            if self.first_pair(i):
-                if first_link.is_slack():
-                    reachable.update(self.__make_slack_end_taut(i))
-                else:
-                    reachable.update(self.__make_taut_end_slack(i))
-
-            if self.last_pair(i):
-                if second_link.is_slack():
-                    reachable.update(self.__make_slack_end_taut(i))
-                else:
-                    reachable.update(self.__make_taut_end_slack(i))
 
             if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
@@ -167,6 +156,15 @@ class Polymer:
 
     def __reptate_at(self, i):
         return Polymer(swap_elements(self.__links, i, i + 1))
+
+    def __wiggle_end_links(self):
+        out = set()
+        for link in Link.LINKS:
+            links_with_first_changed = (link, ) + self.__links[1:]
+            links_with_last_changed = self.__links[:-1] + (link, )
+            out.add(Polymer(links_with_first_changed))
+            out.add(Polymer(links_with_last_changed))
+        return out
 
     def __make_slack_end_taut(self, i):
         out = set()
