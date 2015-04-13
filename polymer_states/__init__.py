@@ -1,6 +1,7 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import itertools
 
 
 class Link(int):
@@ -101,7 +102,8 @@ class Polymer:
     def reachable_from(self):
         reachable = {self}
         reachable.update(self.__wiggle_end_links())
-        for i, pair in enumerate(self.link_pairs()):
+
+        for i, pair in zip(itertools.count(), self.link_pairs()):
             first_link, second_link = pair
 
             if Polymer.both_slacks(pair):
@@ -164,27 +166,6 @@ class Polymer:
             links_with_last_changed = self.__links[:-1] + (link, )
             out.add(Polymer(links_with_first_changed))
             out.add(Polymer(links_with_last_changed))
-        return out
-
-    def __make_slack_end_taut(self, i):
-        out = set()
-        for taut_link in Link.TAUT_LINKS:
-            if self.first_pair(i):
-                new_links = (taut_link, ) + self.__links[1:]
-                out.add(Polymer(new_links))
-            if self.last_pair(i):
-                new_links = self.__links[:-1] + (taut_link, )
-                out.add(Polymer(new_links))
-        return out
-
-    def __make_taut_end_slack(self, i):
-        out = set()
-        if self.first_pair(i):
-            new_links = (Link.SLACK, ) + self.__links[1:]
-            out.add(Polymer(new_links))
-        if self.last_pair(i):
-            new_links = self.__links[:-1] + (Link.SLACK, )
-            out.add(Polymer(new_links))
         return out
 
     def __flip_at(self, i):
