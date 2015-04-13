@@ -113,10 +113,13 @@ class Polymer:
                 if first_link.is_slack():
                     reachable.update(self.__make_slack_end_taut(i))
                 else:
-                    reachable.add(self.__make_taut_end_go_slack(i))
+                    reachable.update(self.__make_taut_end_slack(i))
 
-            if self.last_pair(i) and second_link.is_slack():
-                reachable.update(self.__make_slack_end_taut(i))
+            if self.last_pair(i):
+                if second_link.is_slack():
+                    reachable.update(self.__make_slack_end_taut(i))
+                else:
+                    reachable.update(self.__make_taut_end_slack(i))
 
             if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
@@ -176,11 +179,15 @@ class Polymer:
                 out.add(Polymer(new_links))
         return out
 
-    def __make_taut_end_go_slack(self, i):
-        return Polymer([
-            Link.SLACK if j == i else link
-            for j, link in enumerate(self.__links)
-        ])
+    def __make_taut_end_slack(self, i):
+        out = set()
+        if self.first_pair(i):
+            new_links = (Link.SLACK, ) + self.__links[1:]
+            out.add(Polymer(new_links))
+        if self.last_pair(i):
+            new_links = self.__links[:-1] + (Link.SLACK, )
+            out.add(Polymer(new_links))
+        return out
 
     def __flip_at(self, i):
         return Polymer(swap_elements(self.__links, i, i + 1))
