@@ -41,6 +41,7 @@ class PolymerConstructionTest(unittest.TestCase):
     def test_value_error_for_zero_links_when_curled_up(self):
         self.assertRaises(ValueError, Polymer.all_curled_up, 0)
 
+
 class PolymerEqualityTest(unittest.TestCase):
 
     def test_polymers_with_equal_links_are_equal(self):
@@ -62,6 +63,7 @@ class PolymerEqualityTest(unittest.TestCase):
         polymer_two = Polymer.all_curled_up(3)
 
         self.assertNotEqual(polymer_one, polymer_two)
+
 
 class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
 
@@ -201,6 +203,18 @@ class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
         reachable = polymer.reachable_from()
 
         self.assertIsSubsetOf(with_end_links_changed, reachable)
+
+
+class PolymerPossibleConfigurations(unittest.TestCase):
+
+    def test_unit_polymer_contains_all_types_of_links(self):
+        length = 1
+        polymers = Polymer.all_with_n_links(1)
+
+        self.assertTrue(
+            all(any(link in polymer.links()
+                    for polymer in polymers)
+                for link in Link.LINKS))
 
     # TODO: Make reachable_from return a dict indexed by polymers and containing sets of probability rates.
     # TODO: Build up a TransitionMatrix.

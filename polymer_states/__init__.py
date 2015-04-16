@@ -1,6 +1,8 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+
 import itertools
 
 
@@ -90,8 +92,18 @@ class Polymer:
         return not self == other
 
     @classmethod
+    def all_with_n_links(cls, n):
+        """Polymer.all_with_n_lins(n) -> set of Polymers
+
+        Creates a set of all valid Polymers with n links.
+        """
+        return {
+            Polymer([link]) for link in Link.LINKS
+        }
+
+    @classmethod
     def all_curled_up(cls, link_count):
-        """Polymer.all_curled_up(len) -> a Polymer
+        """Polymer.all_curled_up(link_count) -> a Polymer
 
         Creates a Polymer that has link_count links (ie, link_count + 1 reptons)
         and all reptons placed in a single cell.
@@ -185,6 +197,9 @@ class Polymer:
 
     def link_pairs(self):
         return zip(self.__links, self.__links[1:])
+
+    def links(self):
+        return self.__links
 
     def first_pair(self, i):
         return i == 0
