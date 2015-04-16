@@ -13,6 +13,7 @@ setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Intended Audience :: Other Audience',
     ],
+    install_requires=['numpy >=1.9.1,<2'],
     packages=['polymer_states'],
     url='http://github.com/szabba/applied-sims',
     license='MPL-2.0',
