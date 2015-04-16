@@ -204,7 +204,6 @@ class Polymer:
     def both_slacks(pair):
         return pair == (Link.SLACK, Link.SLACK)
 
-
 HERNIA_PAIRS = {(link, link.opposite()) for link in Link.TAUT_LINKS}
 
 HERNIAS = {

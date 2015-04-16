@@ -33,13 +33,15 @@ class LinkTest(unittest.TestCase):
             self.assertEqual(Link(valid_link_value), valid_link_value)
 
 
-class PolymerTest(SetAssertions, unittest.TestCase):
+class PolymerConstructionTest(unittest.TestCase):
 
     def test_value_error_for_zero_links(self):
         self.assertRaises(ValueError, Polymer, [])
 
     def test_value_error_for_zero_links_when_curled_up(self):
         self.assertRaises(ValueError, Polymer.all_curled_up, 0)
+
+class PolymerEqualityTest(unittest.TestCase):
 
     def test_polymers_with_equal_links_are_equal(self):
         links = [Link.UP, Link.LEFT, Link.RIGHT, Link.DOWN, Link.SLACK, Link.UP]
@@ -60,6 +62,8 @@ class PolymerTest(SetAssertions, unittest.TestCase):
         polymer_two = Polymer.all_curled_up(3)
 
         self.assertNotEqual(polymer_one, polymer_two)
+
+class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
 
     def test_polymer_reachable_returns_set(self):
         polymer = Polymer.all_curled_up(3)
