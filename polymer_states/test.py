@@ -2,8 +2,10 @@
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 import unittest
 from unittest.util import safe_repr
+
 from polymer_states import Polymer, HERNIAS, Link
 
 
@@ -215,6 +217,20 @@ class PolymerPossibleConfigurations(unittest.TestCase):
             all(any(link in polymer.links()
                     for polymer in polymers)
                 for link in Link.LINKS))
+
+    def test_number_of_polymers_of_given_length_is_right(self):
+        for length in range(1, 3):
+            polymers = Polymer.all_with_n_links(length)
+
+            self.assertEqual(len(polymers), len(Link.LINKS) ** length)
+
+    def test_all_with_n_links_returns_polymer_set(self):
+        for length in range(1, 3):
+            polymers = Polymer.all_with_n_links(length)
+
+            self.assertIsInstance(polymers, set)
+            self.assertTrue(all(isinstance(polymer, Polymer)
+                                for polymer in polymers))
 
     # TODO: Make reachable_from return a dict indexed by polymers and containing sets of probability rates.
     # TODO: Build up a TransitionMatrix.

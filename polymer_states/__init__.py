@@ -3,7 +3,9 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+import functools
 import itertools
+import operator
 
 
 class Link(int):
@@ -97,9 +99,18 @@ class Polymer:
 
         Creates a set of all valid Polymers with n links.
         """
-        return {
-            Polymer([link]) for link in Link.LINKS
-        }
+        curled_up = Polymer.all_curled_up(n)
+
+        old, new = set(), {curled_up}
+        grow_by = curled_up.reachable_from()
+
+        while new != old:
+            old, new = new, new | grow_by
+            grow_by = functools.reduce(
+                operator.or_,
+                (polymer.reachable_from() for polymer in grow_by))
+
+        return new
 
     @classmethod
     def all_curled_up(cls, link_count):
