@@ -8,7 +8,7 @@
 ## Generate states for all polymers of length n
 
 ```bash
-$ python -m polymer_states.generate_states
+$ python -m polymer_states.generate_states n
 ```
 
 ## License and copyright
