@@ -1,15 +1,15 @@
 # Applications of computer simulations, Spring 2015, University of Zielona Góra
 
+## Technicalities
+
+* Python 3
+* Use virtualenv for a smooth experience
+
 ## Generate states for all polymers of length n
 
 ```bash
 $ python -m polymer_states.generate_states
 ```
-
-## Technicalities
-
-* Python 3
-* Use virtualenv for a smooth experience
 
 ## License and copyright
 
