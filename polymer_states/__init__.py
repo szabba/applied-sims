@@ -88,6 +88,7 @@ class Polymer:
         return hash(self.__links)
 
     def __eq__(self, other):
+        if not isinstance(other, Polymer): return False
         return self.__links == other._Polymer__links
 
     def __ne__(self, other):
