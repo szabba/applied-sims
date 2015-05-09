@@ -4,7 +4,6 @@
 
 
 import functools
-import itertools
 import operator
 
 
