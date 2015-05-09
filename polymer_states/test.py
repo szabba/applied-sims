@@ -67,6 +67,31 @@ class PolymerEqualityTest(unittest.TestCase):
         self.assertNotEqual(polymer_one, polymer_two)
 
 
+class PolymerModificationTest(unittest.TestCase):
+
+    def test_substitution_for_first_link_pair(self):
+        polymer = Polymer.all_curled_up(3)
+
+        modified = polymer.substitute_pair(0, (None, Link.UP))
+
+        self.assertEqual(modified, Polymer([Link.UP, Link.SLACK, Link.SLACK]))
+
+    def test_substitution_for_last_link_pair(self):
+        polymer = Polymer.all_curled_up(3)
+
+        modified = polymer.substitute_pair(3, (Link.DOWN, None))
+
+        self.assertEqual(modified, Polymer([Link.SLACK, Link.SLACK, Link.DOWN]))
+
+    def test_substitution_inside_chain(self):
+        polymer = Polymer.all_curled_up(4)
+
+        modified = polymer.substitute_pair(2, (Link.DOWN, Link.UP))
+
+        self.assertEqual(modified,
+                         Polymer([Link.SLACK, Link.DOWN, Link.UP, Link.SLACK]))
+
+
 class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
 
     def test_polymer_reachable_returns_set(self):

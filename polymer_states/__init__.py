@@ -172,6 +172,17 @@ class Polymer:
             out.add(Polymer(new_links))
         return out
 
+    def substitute_pair(self, pair_number, replacement_pair):
+        first, second = replacement_pair
+        vlinks = (None, ) + self.__links + (None, )
+        new_vlinks = [
+            first if i == pair_number else
+            second if i - 1 == pair_number else
+            link
+            for i, link in enumerate(vlinks)
+        ]
+        return Polymer(new_vlinks[1:-1])
+
     def __annihilate_hernia_at(self, i):
         new_links = (
             Link.SLACK if j in (i, i + 1) else link
