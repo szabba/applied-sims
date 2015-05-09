@@ -126,8 +126,7 @@ class Polymer:
         reachable = {self}
         reachable.update(self.__wiggle_end_links())
 
-        for i, pair in zip(itertools.count(), self.link_pairs()):
-            first_link, second_link = pair
+        for i, pair in enumerate(self.link_pairs()):
 
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i))
@@ -218,7 +217,7 @@ class Polymer:
         return out
 
     def link_pairs(self):
-        return zip(self.__links, self.__links[1:])
+        return zip((None, ) + self.__links, self.__links + (None, ))
 
     def links(self):
         return self.__links
