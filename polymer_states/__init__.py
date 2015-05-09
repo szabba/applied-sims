@@ -131,7 +131,7 @@ class Polymer:
             if Polymer.both_slacks(pair):
                 reachable.update(self.__create_hernias_at(i, pair))
 
-            if Polymer.can_reprate(pair):
+            if Polymer.can_reptate(pair):
                 reachable.update(self.__reptate_at(i, pair))
 
             if Polymer.is_hernia(pair):
@@ -206,7 +206,6 @@ class Polymer:
         first, second = current
         return self.substitute_pair(i, (second, first))
 
-
     def __change_hernia_bend_direction(self, i, current):
         return {
             self.substitute_pair(i, hernia)
@@ -229,7 +228,7 @@ class Polymer:
         return pair in Link.PERPENDICULAR_PAIRS
 
     @staticmethod
-    def can_reprate(pair):
+    def can_reptate(pair):
         return not Polymer.is_edge_pair(pair) and Link.SLACK in pair
 
     @staticmethod
