@@ -129,19 +129,19 @@ class Polymer:
         for i, pair in enumerate(self.link_pairs()):
 
             if Polymer.both_slacks(pair):
-                reachable.update(self.__create_hernias_at(i))
+                reachable.update(self.__create_hernias_at(i, pair))
 
-            if Link.SLACK in pair:
-                reachable.add(self.__reptate_at(i))
+            if Polymer.can_reprate(pair):
+                reachable.update(self.__reptate_at(i, pair))
 
             if Polymer.is_hernia(pair):
                 reachable.add(self.__annihilate_hernia_at(i))
-                reachable.update(self.__change_hernia_bend_direction(i))
+                reachable.update(self.__change_hernia_bend_direction(i, pair))
 
             if Polymer.is_bent_pair(pair):
-                reachable.add(self.__flip_at(i))
+                reachable.add(self.__flip_at(i, pair))
 
-        return reachable
+        return reachable - {self}
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
@@ -158,19 +158,6 @@ class Polymer:
         """
         return any(Polymer.both_slacks(pair) for pair in self.link_pairs())
 
-    def __create_hernias_at(self, i):
-        out = set()
-        for first, second in [(Link.UP, Link.DOWN), (Link.DOWN, Link.UP),
-                              (Link.LEFT, Link.RIGHT), (Link.RIGHT, Link.LEFT)]:
-            new_links = (
-                first if j == i
-                else second if j == i + 1
-                else link
-                for j, link in enumerate(self.__links)
-            )
-            out.add(Polymer(new_links))
-        return out
-
     def substitute_pair(self, pair_number, replacement_pair):
         first, second = replacement_pair
         vlinks = (None, ) + self.__links + (None, )
@@ -182,39 +169,50 @@ class Polymer:
         ]
         return Polymer(new_vlinks[1:-1])
 
-    def __annihilate_hernia_at(self, i):
-        new_links = (
-            Link.SLACK if j in (i, i + 1) else link
-            for j, link in enumerate(self.__links)
-        )
-        return Polymer(new_links)
+    def __create_hernias_at(self, i, current):
+        return {
+            self.substitute_pair(i, pair)
+            for pair in {
+                (Link.UP, Link.DOWN),
+                (Link.DOWN, Link.UP),
+                (Link.LEFT, Link.RIGHT),
+                (Link.RIGHT, Link.LEFT)
+            } if pair != current
+        }
 
-    def __reptate_at(self, i):
-        return Polymer(swap_elements(self.__links, i, i + 1))
+    def __annihilate_hernia_at(self, i):
+        return self.substitute_pair(i, (Link.SLACK, Link.SLACK))
+
+    def __reptate_at(self, i, pair):
+        first, second = pair
+        return {
+            self.substitute_pair(i, (second, first))
+        } if first != second else set()
 
     def __wiggle_end_links(self):
-        out = set()
-        for link in Link.LINKS:
-            links_with_first_changed = (link, ) + self.__links[1:]
-            links_with_last_changed = self.__links[:-1] + (link, )
-            out.add(Polymer(links_with_first_changed))
-            out.add(Polymer(links_with_last_changed))
-        return out
+        wiggle_front = {
+            self.substitute_pair(0, (None, link))
+            for link in Link.LINKS
+            if link != self.links()[0]
+        }
+        wiggle_back = {
+            self.substitute_pair(len(self.links()), (link, None))
+            for link in Link.LINKS
+            if link != self.links()[-1]
+        }
+        return wiggle_front | wiggle_back
 
-    def __flip_at(self, i):
-        return Polymer(swap_elements(self.__links, i, i + 1))
+    def __flip_at(self, i, current):
+        first, second = current
+        return self.substitute_pair(i, (second, first))
 
-    def __change_hernia_bend_direction(self, i):
-        out = set()
-        for first_link, second_link in HERNIA_PAIRS:
-            new_links = (
-                first_link if j == i
-                else second_link if j == i + 1
-                else link
-                for j, link in enumerate(self.__links)
-            )
-            out.add(Polymer(new_links))
-        return out
+
+    def __change_hernia_bend_direction(self, i, current):
+        return {
+            self.substitute_pair(i, hernia)
+            for hernia in HERNIA_PAIRS
+            if hernia != current
+        }
 
     def link_pairs(self):
         return zip((None, ) + self.__links, self.__links + (None, ))
@@ -222,15 +220,17 @@ class Polymer:
     def links(self):
         return self.__links
 
-    def first_pair(self, i):
-        return i == 0
-
-    def last_pair(self, i):
-        return i + 2 == len(self.__links)
+    @staticmethod
+    def is_edge_pair(pair):
+        return None in pair
 
     @staticmethod
     def is_bent_pair(pair):
         return pair in Link.PERPENDICULAR_PAIRS
+
+    @staticmethod
+    def can_reprate(pair):
+        return not Polymer.is_edge_pair(pair) and Link.SLACK in pair
 
     @staticmethod
     def is_hernia(pair):
