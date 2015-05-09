@@ -96,12 +96,12 @@ class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
 
         self.assertFalse(polymer_wihtout_slack_pair.contains_slack_pair())
 
-    def test_polymer_reachable_set_contains_self(self):
+    def test_polymer_reachable_set_does_not_contain_self(self):
         polymer = Polymer.all_curled_up(3)
 
         reachable = polymer.reachable_from()
 
-        self.assertIn(polymer, reachable)
+        self.assertNotIn(polymer, reachable)
 
     def test_two_slacks_can_turn_into_hernia(self):
         two_slack_polymer = Polymer.all_curled_up(2)
