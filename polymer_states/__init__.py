@@ -81,14 +81,14 @@ class Polymer:
         self.__links = tuple(map(Link, links))
 
     def __repr__(self):
-        return 'Polymer([{}])'.format(', '.join(map(repr, self.__links)))
+        return 'Polymer([{}])'.format(', '.join(map(repr, self.links())))
 
     def __hash__(self):
-        return hash(self.__links)
+        return hash(self.links())
 
     def __eq__(self, other):
         if not isinstance(other, Polymer): return False
-        return self.__links == other._Polymer__links
+        return self.links() == other.links()
 
     def __ne__(self, other):
         return not self == other
@@ -160,7 +160,7 @@ class Polymer:
 
     def substitute_pair(self, pair_number, replacement_pair):
         first, second = replacement_pair
-        vlinks = (None, ) + self.__links + (None, )
+        vlinks = (None, ) + self.links() + (None, )
         new_vlinks = [
             first if i == pair_number else
             second if i - 1 == pair_number else
@@ -214,7 +214,7 @@ class Polymer:
         }
 
     def link_pairs(self):
-        return zip((None, ) + self.__links, self.__links + (None, ))
+        return zip((None, ) + self.links(), self.links() + (None, ))
 
     def links(self):
         return self.__links
