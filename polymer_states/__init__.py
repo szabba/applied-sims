@@ -102,13 +102,13 @@ class Polymer:
         curled_up = Polymer.all_curled_up(n)
 
         old, new = set(), {curled_up}
-        grow_by = curled_up.reachable_from()
+        grow_by = curled_up.reachable_from().keys()
 
         while new != old:
             old, new = new, new | grow_by
             grow_by = functools.reduce(
                 operator.or_,
-                (polymer.reachable_from() for polymer in grow_by))
+                (polymer.reachable_from().keys() for polymer in grow_by))
 
         return new
 
@@ -141,7 +141,9 @@ class Polymer:
             if Polymer.is_bent_pair(pair):
                 reachable.add(self.__flip_at(i, pair))
 
-        return reachable - {self}
+        reachable -= {self}
+
+        return dict.fromkeys(reachable, 0)
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool

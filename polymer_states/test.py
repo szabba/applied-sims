@@ -94,12 +94,12 @@ class PolymerModificationTest(unittest.TestCase):
 
 class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
 
-    def test_polymer_reachable_returns_set(self):
+    def test_polymer_reachable_returns_dict(self):
         polymer = Polymer.all_curled_up(3)
 
         reachable = polymer.reachable_from()
 
-        self.assertIsInstance(reachable, set)
+        self.assertIsInstance(reachable, dict)
 
     def test_polymer_knows_it_contains_hernia(self):
         polymer = Polymer([Link.UP, Link.DOWN, Link.SLACK])
