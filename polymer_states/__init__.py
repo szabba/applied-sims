@@ -139,7 +139,7 @@ class Polymer:
                 reachable.add(self.__annihilate_hernia_at(i))
                 reachable.update(self.__change_hernia_bend_direction(i))
 
-            if first_link.perpendicular_to(second_link):
+            if Polymer.is_bent_pair(pair):
                 reachable.add(self.__flip_at(i))
 
         return reachable
@@ -217,6 +217,10 @@ class Polymer:
 
     def last_pair(self, i):
         return i + 2 == len(self.__links)
+
+    @staticmethod
+    def is_bent_pair(pair):
+        return pair in Link.PERPENDICULAR_PAIRS
 
     @staticmethod
     def is_hernia(pair):
