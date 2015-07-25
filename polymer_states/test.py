@@ -113,8 +113,21 @@ class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
         self.assertFalse(polymer_wihtout_slack_pair.contains_slack_pair())
 
     def test_polymer_reachable_set_does_not_contain_self(self):
-        # TODO: Test in a case where all kinds of moves are possible.
-        polymer = Polymer.all_curled_up(3)
+        # All kinds of legal moves are possible in the polymer given below.
+        polymer = Polymer([
+            # Starts with a slack link
+            Link.SLACK,
+            # Contains a taut-slack pair
+            Link.RIGHT, Link.SLACK,
+            # Contains two slack links in a single cell
+            Link.SLACK, Link.SLACK,
+            # Contains a three cells "bent knee"
+            Link.RIGHT, Link.UP,
+            # Contains a hernia
+            Link.RIGHT, Link.LEFT,
+            # Ends with a taut link
+            Link.UP
+        ])
 
         reachable = polymer.reachable_from()
 
