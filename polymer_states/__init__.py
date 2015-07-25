@@ -64,13 +64,6 @@ class Polymer:
     """A chain of N links."""
 
     def __init__(self, links):
-
-        links = tuple(links)
-
-        if len(links) < 1:
-            raise ValueError(("polymer chain must contain at least one "
-                              + "link, {} given").format(len(links)))
-
         self.__links = tuple(map(Link, links))
 
     def __repr__(self):
