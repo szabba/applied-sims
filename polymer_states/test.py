@@ -83,7 +83,7 @@ class PolymerModificationTest(unittest.TestCase):
                          Polymer([Link.SLACK, Link.DOWN, Link.UP, Link.SLACK]))
 
 
-class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
+class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
 
     def test_polymer_reachable_returns_dict(self):
         polymer = Polymer.all_curled_up(3)
