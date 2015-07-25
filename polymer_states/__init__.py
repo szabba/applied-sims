@@ -115,6 +115,8 @@ class Polymer:
 
         return cls([Link.SLACK] * link_count)
 
+    # TODO: Add probabilites dictionary argument to set the result values to something useful.
+    # TODO: Separate out the moving of reptons on either end of the chain from moving those in the middle.
     def reachable_from(self):
         reachable = {self}
         reachable.update(self.__wiggle_end_links())
