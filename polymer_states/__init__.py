@@ -167,12 +167,20 @@ class Polymer:
         """
         return any(Polymer.both_slacks(pair) for pair in self.link_pairs())
 
-    def substitute_pair(self, pair_number, replacement_pair):
+    def substitute_pair(self, p, replacement_pair):
+        """P.substitute_pair(p, replacement_pair) -> Polymer
+
+        Produces a polymer in which the `p`-th pair is substituted with the one
+        specified.
+
+        The pair index `p` corresponds to the position of a pair in
+        `P.link_pairs()`.
+        """
         first, second = replacement_pair
         vlinks = (None, ) + self.links() + (None, )
         new_vlinks = [
-            first if i == pair_number else
-            second if i - 1 == pair_number else
+            first if i == p else
+            second if i - 1 == p else
             link
             for i, link in enumerate(vlinks)
         ]
