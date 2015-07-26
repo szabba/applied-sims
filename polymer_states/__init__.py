@@ -87,7 +87,7 @@ MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
     MoveType.REPTATION,
     MoveType.BARRIER_CROSSING,
     MoveType.HERNIA_ANNIHILATION,
-    MoveType.HERNIA_,
+    MoveType.HERNIA_REDIRECTION,
     MoveType.END_CONTRACTION,
     MoveType.END_EXTENSION,
     MoveType.END_WIGGLE,
@@ -103,7 +103,11 @@ def at_end_pairs(f):
         if not Polymer.is_edge_pair(pair):
             return set()
         link = [l for l in pair if l is not None][0]
-        new_links = f(link)
+        new_links, move_type = f(link)
+        assert isinstance(move_type, MoveType)
+        assert isinstance(new_links, (set, frozenset)), new_links
+        for new_link in new_links:
+            assert isinstance(new_link, Link)
         new_pairs = {
             tuple([
                       old_link if old_link is None else new_link
@@ -113,11 +117,20 @@ def at_end_pairs(f):
             for new_link
             in new_links
         }
-        return {
+        assert isinstance(new_pairs, (set, frozenset))
+        for new_pair in new_pairs:
+            assert isinstance(new_pair, tuple)
+            for link in new_pair:
+                assert isinstance(link, (type(None), Link))
+        new_polymers =  {
             self.substitute_pair(p, new_pair)
             for new_pair
             in new_pairs
         }
+        assert isinstance(new_polymers, (set, frozenset))
+        for new_polymer in new_polymers:
+            assert isinstance(new_polymer, Polymer)
+        return new_polymers, move_type
     return wrapper
 
 
@@ -132,7 +145,7 @@ class Polymer:
             self.__wiggle_end_links_if_possible,
             self.__create_hernias_if_possible,
             self.__repate_if_possible,
-            self.__anihilate_hernias_if_possible,
+            self.__annihilate_hernias_if_possible,
             self.__change_hernia_bend_direction_if_possible,
             self.__flip_bent_pair_if_possible,
         )
@@ -187,7 +200,6 @@ class Polymer:
         """
         return set(self.transition_rates({}).keys())
 
-    # TODO: Use move rates dictionary.
     def transition_rates(self, move_rates: dict, sum_with = operator.add, zero = 0) -> dict:
         """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
 
@@ -198,49 +210,55 @@ class Polymer:
         The rates for different moves are combined using `sum_with` which
         defaults to `operator.add`. It must be associative and commutative.
 
-        `zero` should be the identify of `sum_with`.
+        `zero` should be the identify of `sum_with`. It will be the assumed
+        transition rate for moves that don't have one specified in `move_rates`.
         """
 
         rates = {}
         for p, pair in enumerate(self.link_pairs()):
             for t in self.__polymer_transformers:
-                new_polymers = t(p, pair)
+                result = t(p, pair)
+                if not isinstance(result, tuple):
+                    print('*** {} -> {} ***'.format(t, result))
+                new_polymers, move_type = result
+                rate_diff = move_rates.get(move_type, zero)
 
                 for new_polymer in new_polymers:
                     old_rate = rates.get(new_polymer, zero)
-                    new_rate = sum_with(old_rate, zero)
+                    new_rate = sum_with(old_rate, rate_diff)
                     rates[new_polymer] = new_rate
 
         return rates
 
     def __repate_if_possible(self, p, pair):
+        alternatives = set()
         if Polymer.can_reptate(pair):
-            return self.__reptate_at(p, pair)
-        return set()
+            alternatives = self.__reptate_at(p, pair)
+        return alternatives, MoveType.REPTATION
 
     def __create_hernias_if_possible(self, p, pair):
+        alternatives = set()
         if Polymer.both_slacks(pair):
-            return self.__create_hernias_at(p, pair)
-        return set()
+            alternatives = self.__create_hernias_at(p, pair)
+        return alternatives, MoveType.HERNIA_CREATION
 
-    def __anihilate_hernias_if_possible(self, p, pair):
+    def __annihilate_hernias_if_possible(self, p, pair):
+        alternatives = set()
         if Polymer.is_hernia(pair):
-            return {
-                self.__annihilate_hernia_at(p)
-            }
-        return set()
+            alternatives = {self.__annihilate_hernia_at(p)}
+        return alternatives, MoveType.HERNIA_ANNIHILATION
 
     def __change_hernia_bend_direction_if_possible(self, p, pair):
+        alternatives = set()
         if Polymer.is_hernia(pair):
-            return self.__change_hernia_bend_direction(p, pair)
-        return set()
+            alternatives = self.__change_hernia_bend_direction(p, pair)
+        return alternatives, MoveType.HERNIA_REDIRECTION
 
     def __flip_bent_pair_if_possible(self, p, pair):
+        alternatives = set()
         if Polymer.is_bent_pair(pair):
-            return {
-                self.__flip_at(p, pair)
-            }
-        return set()
+            alternatives = {self.__flip_at(p, pair)}
+        return alternatives, MoveType.BARRIER_CROSSING
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
@@ -298,26 +316,20 @@ class Polymer:
 
     @at_end_pairs
     def __contract_taut_ends_if_possible(link):
-        if link.is_taut():
-            return {Link.SLACK}
-        return set()
+        alternatives = {Link.SLACK} if link.is_taut() else set()
+        return alternatives, MoveType.END_CONTRACTION
 
     @at_end_pairs
     def __extract_slack_ends_if_possible(link):
-        if link.is_slack():
-            return Link.TAUT_LINKS
-        return set()
+        alternatives = Link.TAUT_LINKS if link.is_slack() else set()
+        return alternatives, MoveType.END_EXTENSION
 
     @at_end_pairs
     def __wiggle_end_links_if_possible(link):
-        if not link.is_taut():
-            return set()
-        return {
-            taut_link
-            for taut_link
-            in Link.TAUT_LINKS
-            if taut_link != link
-        }
+        alternatives = {
+            taut_link for taut_link in Link.TAUT_LINKS if taut_link != link
+        } if link.is_taut() else set()
+        return alternatives, MoveType.END_WIGGLE
 
     def __flip_at(self, i, current):
         first, second = current

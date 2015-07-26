@@ -256,7 +256,7 @@ class PolymerTransitionRatesTest(unittest.TestCase):
                 MoveType.REPTATION,
                 MoveType.BARRIER_CROSSING,
                 MoveType.HERNIA_ANNIHILATION,
-                MoveType.HERNIA_,
+                MoveType.HERNIA_REDIRECTION,
                 MoveType.END_CONTRACTION,
                 MoveType.END_EXTENSION,
                 MoveType.END_WIGGLE)))
