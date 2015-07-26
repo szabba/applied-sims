@@ -207,15 +207,17 @@ class Polymer:
         } if first != second else set()
 
     def __wiggle_end_links(self):
+        current_first = self.links()[0]
+        current_last = self.links()[-1]
         wiggle_front = {
             self.substitute_pair(0, (None, link))
             for link in Link.LINKS
-            if link != self.links()[0]
+            if link != current_first
         }
         wiggle_back = {
             self.substitute_pair(len(self.links()), (link, None))
             for link in Link.LINKS
-            if link != self.links()[-1]
+            if link != current_last
         }
         return wiggle_front | wiggle_back
 
