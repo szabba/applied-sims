@@ -147,9 +147,6 @@ class Polymer:
             if Polymer.is_bent_pair(pair):
                 reachable.add(self.__flip_at(i, pair))
 
-        # TODO: Ensure no move method returns self as an element.
-        reachable -= {self}
-
         return dict.fromkeys(reachable, 0)
 
     def contains_hernia(self):
