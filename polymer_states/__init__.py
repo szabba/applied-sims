@@ -5,6 +5,7 @@
 
 import functools
 import operator
+import itertools
 
 
 class Link(int):
@@ -88,13 +89,13 @@ class Polymer:
         curled_up = Polymer.all_curled_up(n)
 
         old, new = set(), {curled_up}
-        grow_by = curled_up.reachable_from().keys()
+        grow_by = curled_up.reachable_from()
 
         while new != old:
             old, new = new, new | grow_by
             grow_by = functools.reduce(
                 operator.or_,
-                (polymer.reachable_from().keys() for polymer in grow_by))
+                (polymer.reachable_from() for polymer in grow_by))
 
         return new
 
@@ -110,7 +111,7 @@ class Polymer:
 
     # TODO: Add probabilites dictionary argument to set the result values to something useful.
     # TODO: Separate out the moving of reptons on either end of the chain from moving those in the middle.
-    def reachable_from(self):
+    def reachable_from(self) -> set:
         reachable = {self}
         reachable.update(self.__wiggle_end_links())
 
@@ -131,7 +132,7 @@ class Polymer:
 
         reachable -= {self}
 
-        return dict.fromkeys(reachable, 0)
+        return reachable
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
