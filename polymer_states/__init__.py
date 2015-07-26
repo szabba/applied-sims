@@ -80,6 +80,18 @@ class MoveType(int):
     def __init__(self, value):
         pass
 
+    def __repr__(self):
+        return {
+            MoveType.HERNIA_CREATION: 'MoveType.HERNIA_CREATION',
+            MoveType.REPTATION: 'MoveType.REPTATION',
+            MoveType.BARRIER_CROSSING: 'MoveType.BARRIER_CROSSING',
+            MoveType.HERNIA_ANNIHILATION: 'MoveType.HERNIA_ANNIHILATION',
+            MoveType.HERNIA_REDIRECTION: 'MoveType.HERNIA_REDIRECTION',
+            MoveType.END_CONTRACTION: 'MoveType.END_CONTRACTION',
+            MoveType.END_EXTENSION: 'MoveType.END_EXTENSION',
+            MoveType.END_WIGGLE: 'MoveType.END_WIGGLE',
+        }[self]
+
 
 MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
 (
