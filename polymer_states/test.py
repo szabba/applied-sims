@@ -314,6 +314,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.HERNIA_CREATION)
 
+    # TODO: Other cases.
+
 
 class PolymerPossibleConfigurations(unittest.TestCase):
 
@@ -340,6 +342,4 @@ class PolymerPossibleConfigurations(unittest.TestCase):
             self.assertTrue(all(isinstance(polymer, Polymer)
                                 for polymer in polymers))
 
-    # TODO: Make reachable_from return a dict indexed by polymers and containing sets of probability rates.
     # TODO: Build up a TransitionMatrix.
-    # TODO: Change Polymer internals to deal with a wall and pore.
