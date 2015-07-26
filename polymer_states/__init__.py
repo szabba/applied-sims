@@ -223,6 +223,15 @@ class Polymer:
         }
 
     def link_pairs(self):
+        """P.link_pairs() -> iterable of 2-element Link tuples
+
+        Returns all pairs of consecutive links. As a special case, the first
+        pair contains a None instead of the first link, and the last pair
+        contains a None instead of the last link.
+
+        The indices accepted by P.substitute_pair correspond to the position in
+        this iterator.
+        """
         return zip((None, ) + self.links(), self.links() + (None, ))
 
     def __inner_pairs(self):
