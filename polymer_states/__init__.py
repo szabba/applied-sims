@@ -304,7 +304,7 @@ class Polymer:
     @at_end_pairs
     def __extract_slack_ends_if_possible(link):
         if link.is_slack():
-            return {Link.TAUT_LINKS}
+            return Link.TAUT_LINKS
         return set()
 
     @at_end_pairs
