@@ -3,6 +3,9 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+__all__ = ['Link', 'MoveType', 'Polymer', 'HERNIAS', 'HERNIA_PAIRS']
+
+
 import functools
 import operator
 
@@ -90,6 +93,32 @@ MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
     MoveType.END_WIGGLE,
 ) = MoveType.MOVE_TYPES
 
+
+def at_end_pairs(f):
+    """A decorator turning `Link -> set of Links` functions into `Polymer`
+    methods that transform the end links of a chain.
+    """
+    @functools.wraps(f)
+    def wrapper(self, p, pair):
+        if not Polymer.is_edge_pair(pair):
+            return set()
+        link = [l for l in pair if l is not None][0]
+        new_links = f(link)
+        new_pairs = {
+            tuple([
+                      old_link if old_link is None else new_link
+                      for old_link
+                      in pair
+                      ])
+            for new_link
+            in new_links
+        }
+        return {
+            self.substitute_pair(p, new_pair)
+            for new_pair
+            in new_pairs
+        }
+    return wrapper
 
 
 class Polymer:
