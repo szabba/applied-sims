@@ -247,10 +247,27 @@ class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
 
 class PolymerTransitionRatesTest(unittest.TestCase):
 
+    MOVE_RATES = {}
+
+    ALL_OF_LENGTH_3 = Polymer.all_with_n_links(3)
+
     def test_transition_rates_returns_a_dictionary(self):
-        polymers = Polymer.all_with_n_links(3)
-        for polymer in polymers:
-            self.assertIsInstance(polymer.transition_rates({}), dict)
+        for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
+            self.assertIsInstance(
+                polymer.transition_rates(
+                    PolymerTransitionRatesTest.MOVE_RATES),
+                dict)
+
+    def test_keys_are_the_values_reachable_from_the_given_polymer(self):
+        for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
+            transition_rates = polymer.transition_rates(
+                PolymerTransitionRatesTest.MOVE_RATES)
+
+            reachable = polymer.reachable_from()
+
+            self.assertEqual(
+                set(transition_rates.keys()),
+                reachable)
 
 
 class PolymerPossibleConfigurations(unittest.TestCase):

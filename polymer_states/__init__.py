@@ -199,19 +199,15 @@ class Polymer:
         defaults to `operator.add`.
         """
 
-        def reachable_by_transformin_pair(p, pair):
+        def reachable_by_transforming_pair(p, pair):
             return functools.reduce(
                 operator.or_,
-                (transformer(p, pair)
-                 for transformer
-                 in self.__polymer_transformers),
+                (transformer(p, pair) for transformer in self.__polymer_transformers),
                 set())
 
         reachable = functools.reduce(
             operator.or_,
-            (reachable_by_transformin_pair(p, pair)
-             for p, pair
-             in enumerate(self.link_pairs())),
+            (reachable_by_transforming_pair(p, pair) for p, pair in enumerate(self.link_pairs())),
             set())
 
         return dict.fromkeys(reachable, 0)
