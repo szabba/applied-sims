@@ -1,7 +1,7 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import functools
 
 import unittest
 from unittest.util import safe_repr
@@ -263,6 +263,21 @@ class PolymerTransitionRatesTest(unittest.TestCase):
 
     ALL_OF_LENGTH_3 = Polymer.all_with_n_links(3)
 
+    def assertTransitionTypePresent(self, rates: dict, transition_type):
+        """PTRT.assertTransitionTypePresent(rates, transition_type)
+
+        Asserts that the result of calling `Polymer.transition_rates` with
+        `MOVE_RATES` and `operator.op_` contains a transition of type
+        `transition_type`.
+        """
+
+        all_types = functools.reduce(operator.or_, rates.values(), 0)
+
+        if not (all_types & transition_type):
+            self.fail(
+                "{} doesn't contain a transition of type {}"\
+                    .format(rates, transition_type))
+
     def test_transition_rates_returns_a_dictionary(self):
         for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
             self.assertIsInstance(
@@ -282,6 +297,16 @@ class PolymerTransitionRatesTest(unittest.TestCase):
             self.assertEqual(
                 set(transition_rates.keys()),
                 reachable)
+
+    def test_hernia_creation_present_when_possible(self):
+        polymer = Polymer([Link.SLACK, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(
+            PolymerTransitionRatesTest.MOVE_RATES,
+            operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.HERNIA_CREATION)
 
 
 class PolymerPossibleConfigurations(unittest.TestCase):
