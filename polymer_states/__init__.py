@@ -12,9 +12,13 @@ class Link(int):
 
     VALID_LINK_VALUES = {1 << i for i in range(5)}
 
-    def __init__(self, value):
+    def __new__(cls, value):
         if value not in Link.VALID_LINK_VALUES:
             raise ValueError("invalid link value {}".format(value))
+        return int.__new__(Link, value)
+
+    def __init__(self, value):
+        pass
 
     def __repr__(self):
         return {
@@ -65,9 +69,13 @@ class MoveType(int):
 
     VALID_MOVE_TYPE_VALUES = {1 << i for i in range(8)}
 
-    def __init__(self, value):
+    def __new__(cls, value):
         if value not in MoveType.VALID_MOVE_TYPE_VALUES:
-            raise ValueError('invalid move type value {}'.format(value))
+            raise ValueError("invalid move type value {}".format(value))
+        return int.__new__(MoveType, value)
+
+    def __init__(self, value):
+        pass
 
 
 MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
