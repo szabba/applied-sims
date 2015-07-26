@@ -108,6 +108,13 @@ class Polymer:
 
         return cls([Link.SLACK] * link_count)
 
+    def reachable_from(self) -> set:
+        """P.reachable_from() -> set
+
+        Returns the set of polymers that this one can transform into in a single
+        step.
+        """
+        return set(self.transition_rates({}).keys())
 
     # TODO: Use move rates dictionary.
     # TODO: Separate out the moving of reptons on either end of the chain from moving those in the middle.
@@ -140,12 +147,10 @@ class Polymer:
             if Polymer.is_bent_pair(pair):
                 reachable.add(self.__flip_at(i, pair))
 
+        # TODO: Ensure no move method returns self as an element.
         reachable -= {self}
 
         return dict.fromkeys(reachable, 0)
-
-    def reachable_from(self) -> set:
-        return set(self.transition_rates({}).keys())
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
