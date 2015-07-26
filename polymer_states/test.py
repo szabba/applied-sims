@@ -5,8 +5,9 @@
 
 import unittest
 from unittest.util import safe_repr
+import operator
 
-from polymer_states import Polymer, HERNIAS, Link
+from polymer_states import Polymer, HERNIAS, Link, MoveType
 
 
 class SetAssertions(unittest.TestCase):
@@ -247,7 +248,18 @@ class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
 
 class PolymerTransitionRatesTest(unittest.TestCase):
 
-    MOVE_RATES = {}
+    MOVE_RATES = dict(
+        map(
+            lambda move_type: (move_type, move_type),
+            (
+                MoveType.HERNIA_CREATION,
+                MoveType.REPTATION,
+                MoveType.BARRIER_CROSSING,
+                MoveType.HERNIA_ANNIHILATION,
+                MoveType.HERNIA_,
+                MoveType.END_CONTRACTION,
+                MoveType.END_EXTENSION,
+                MoveType.END_WIGGLE)))
 
     ALL_OF_LENGTH_3 = Polymer.all_with_n_links(3)
 
@@ -255,13 +267,15 @@ class PolymerTransitionRatesTest(unittest.TestCase):
         for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
             self.assertIsInstance(
                 polymer.transition_rates(
-                    PolymerTransitionRatesTest.MOVE_RATES),
+                    PolymerTransitionRatesTest.MOVE_RATES,
+                    sum_with = operator.or_),
                 dict)
 
     def test_keys_are_the_values_reachable_from_the_given_polymer(self):
         for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
             transition_rates = polymer.transition_rates(
-                PolymerTransitionRatesTest.MOVE_RATES)
+                PolymerTransitionRatesTest.MOVE_RATES,
+                sum_with = operator.or_)
 
             reachable = polymer.reachable_from()
 
