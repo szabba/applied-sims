@@ -105,9 +105,6 @@ def at_end_pairs(move_type: MoveType):
                 return set(), move_type
             link = [l for l in pair if l is not None][0]
             new_links = f(link)
-            assert isinstance(new_links, (set, frozenset)), new_links
-            for new_link in new_links:
-                assert isinstance(new_link, Link)
             new_pairs = {
                 tuple([
                           old_link if old_link is None else new_link
@@ -117,19 +114,11 @@ def at_end_pairs(move_type: MoveType):
                 for new_link
                 in new_links
             }
-            assert isinstance(new_pairs, (set, frozenset))
-            for new_pair in new_pairs:
-                assert isinstance(new_pair, tuple)
-                for link in new_pair:
-                    assert isinstance(link, (type(None), Link))
             new_polymers =  {
                 self.substitute_pair(p, new_pair)
                 for new_pair
                 in new_pairs
             }
-            assert isinstance(new_polymers, (set, frozenset))
-            for new_polymer in new_polymers:
-                assert isinstance(new_polymer, Polymer)
             return new_polymers, move_type
         return wrapper
     return decorator
@@ -218,10 +207,7 @@ class Polymer:
         rates = {}
         for p, pair in enumerate(self.link_pairs()):
             for t in self.__polymer_transformers:
-                result = t(p, pair)
-                if not isinstance(result, tuple):
-                    print('*** {} -> {} ***'.format(t, result))
-                new_polymers, move_type = result
+                new_polymers, move_type = t(p, pair)
                 rate_diff = move_rates.get(move_type, zero)
 
                 for new_polymer in new_polymers:
