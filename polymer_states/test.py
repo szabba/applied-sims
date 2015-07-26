@@ -245,6 +245,14 @@ class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
         self.assertIsSubsetOf(with_end_links_changed, reachable)
 
 
+class PolymerTransitionRatesTest(unittest.TestCase):
+
+    def test_transition_rates_returns_a_dictionary(self):
+        polymers = Polymer.all_with_n_links(3)
+        for polymer in polymers:
+            self.assertIsInstance(polymer.transition_rates({}), dict)
+
+
 class PolymerPossibleConfigurations(unittest.TestCase):
 
     def test_unit_polymer_contains_all_types_of_links(self):

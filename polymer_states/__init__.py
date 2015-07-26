@@ -5,7 +5,6 @@
 
 import functools
 import operator
-import itertools
 
 
 class Link(int):
@@ -109,10 +108,21 @@ class Polymer:
 
         return cls([Link.SLACK] * link_count)
 
-    # TODO: Add probabilites dictionary argument to set the result values to something useful.
+
+    # TODO: Use move rates dictionary.
     # TODO: Separate out the moving of reptons on either end of the chain from moving those in the middle.
-    def reachable_from(self) -> set:
-        reachable = {self}
+    def transition_rates(self, move_rates: dict, sum_with = operator.add) -> dict:
+        """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
+
+        Calculates the transition rates to all states reachable from the current
+        one in one step, given that `move_rates` is a dictionary mapping kinds
+        of moves to rates.
+
+        The rates for different moves are combined using `sum_with` which
+        defaults to `operator.add`.
+        """
+
+        reachable = set()
         reachable.update(self.__wiggle_end_links())
 
         for i, pair in enumerate(self.link_pairs()):
@@ -132,7 +142,10 @@ class Polymer:
 
         reachable -= {self}
 
-        return reachable
+        return dict.fromkeys(reachable, 0)
+
+    def reachable_from(self) -> set:
+        return set(self.transition_rates({}).keys())
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
@@ -206,6 +219,13 @@ class Polymer:
 
     def link_pairs(self):
         return zip((None, ) + self.links(), self.links() + (None, ))
+
+    def __inner_pairs(self):
+        return tuple(self.link_pairs())[1:-1]
+
+    def __outer_pairs(self):
+        return ((None, self.links[0]),
+                (self.links[-1], None))
 
     def links(self):
         return self.__links
