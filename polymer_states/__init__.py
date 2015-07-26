@@ -188,7 +188,7 @@ class Polymer:
         return set(self.transition_rates({}).keys())
 
     # TODO: Use move rates dictionary.
-    def transition_rates(self, move_rates: dict, sum_with = operator.add) -> dict:
+    def transition_rates(self, move_rates: dict, sum_with = operator.add, zero = 0) -> dict:
         """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
 
         Calculates the transition rates to all states reachable from the current
@@ -196,7 +196,9 @@ class Polymer:
         of moves to rates.
 
         The rates for different moves are combined using `sum_with` which
-        defaults to `operator.add`.
+        defaults to `operator.add`. It must be associative and commutative.
+
+        `zero` should be the identify of `sum_with`.
         """
 
         def reachable_by_transforming_pair(p, pair):
@@ -210,7 +212,7 @@ class Polymer:
             (reachable_by_transforming_pair(p, pair) for p, pair in enumerate(self.link_pairs())),
             set())
 
-        return dict.fromkeys(reachable, 0)
+        return dict.fromkeys(reachable, zero)
 
     def __repate_if_possible(self, p, pair):
         if Polymer.can_reptate(pair):
