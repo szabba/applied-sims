@@ -94,44 +94,45 @@ MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
 ) = MoveType.MOVE_TYPES
 
 
-def at_end_pairs(f):
+def at_end_pairs(move_type: MoveType):
     """A decorator turning `Link -> set of Links` functions into `Polymer`
     methods that transform the end links of a chain.
     """
-    @functools.wraps(f)
-    def wrapper(self, p, pair):
-        if not Polymer.is_edge_pair(pair):
-            return set()
-        link = [l for l in pair if l is not None][0]
-        new_links, move_type = f(link)
-        assert isinstance(move_type, MoveType)
-        assert isinstance(new_links, (set, frozenset)), new_links
-        for new_link in new_links:
-            assert isinstance(new_link, Link)
-        new_pairs = {
-            tuple([
-                      old_link if old_link is None else new_link
-                      for old_link
-                      in pair
-                      ])
-            for new_link
-            in new_links
-        }
-        assert isinstance(new_pairs, (set, frozenset))
-        for new_pair in new_pairs:
-            assert isinstance(new_pair, tuple)
-            for link in new_pair:
-                assert isinstance(link, (type(None), Link))
-        new_polymers =  {
-            self.substitute_pair(p, new_pair)
-            for new_pair
-            in new_pairs
-        }
-        assert isinstance(new_polymers, (set, frozenset))
-        for new_polymer in new_polymers:
-            assert isinstance(new_polymer, Polymer)
-        return new_polymers, move_type
-    return wrapper
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(self, p, pair):
+            if not Polymer.is_edge_pair(pair):
+                return set(), move_type
+            link = [l for l in pair if l is not None][0]
+            new_links = f(link)
+            assert isinstance(new_links, (set, frozenset)), new_links
+            for new_link in new_links:
+                assert isinstance(new_link, Link)
+            new_pairs = {
+                tuple([
+                          old_link if old_link is None else new_link
+                          for old_link
+                          in pair
+                          ])
+                for new_link
+                in new_links
+            }
+            assert isinstance(new_pairs, (set, frozenset))
+            for new_pair in new_pairs:
+                assert isinstance(new_pair, tuple)
+                for link in new_pair:
+                    assert isinstance(link, (type(None), Link))
+            new_polymers =  {
+                self.substitute_pair(p, new_pair)
+                for new_pair
+                in new_pairs
+            }
+            assert isinstance(new_polymers, (set, frozenset))
+            for new_polymer in new_polymers:
+                assert isinstance(new_polymer, Polymer)
+            return new_polymers, move_type
+        return wrapper
+    return decorator
 
 
 class Polymer:
@@ -314,22 +315,20 @@ class Polymer:
             self.substitute_pair(i, (second, first))
         } if first != second else set()
 
-    @at_end_pairs
+    @at_end_pairs(MoveType.END_CONTRACTION)
     def __contract_taut_ends_if_possible(link):
-        alternatives = {Link.SLACK} if link.is_taut() else set()
-        return alternatives, MoveType.END_CONTRACTION
+        return {Link.SLACK} if link.is_taut() else set()
 
-    @at_end_pairs
+    @at_end_pairs(MoveType.END_EXTENSION)
     def __extract_slack_ends_if_possible(link):
-        alternatives = Link.TAUT_LINKS if link.is_slack() else set()
-        return alternatives, MoveType.END_EXTENSION
+        return Link.TAUT_LINKS if link.is_slack() else set()
 
-    @at_end_pairs
+    @at_end_pairs(MoveType.END_WIGGLE)
     def __wiggle_end_links_if_possible(link):
-        alternatives = {
-            taut_link for taut_link in Link.TAUT_LINKS if taut_link != link
+        return {
+            taut_link for taut_link in Link.TAUT_LINKS
+            if taut_link != link
         } if link.is_taut() else set()
-        return alternatives, MoveType.END_WIGGLE
 
     def __flip_at(self, i, current):
         first, second = current
