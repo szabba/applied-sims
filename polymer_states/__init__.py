@@ -233,6 +233,7 @@ class Polymer:
                 (self.links[-1], None))
 
     def links(self):
+        """P.links() -> tuple of Links, starting from the chain's head """
         return self.__links
 
     @staticmethod
