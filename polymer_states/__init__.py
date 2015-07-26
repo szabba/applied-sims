@@ -60,6 +60,30 @@ Link.PERPENDICULAR_PAIRS = {
 }
 
 
+class MoveType(int):
+    """A type of move with which we can associate a transition rate."""
+
+    VALID_MOVE_TYPE_VALUES = {1 << i for i in range(8)}
+
+    def __init__(self, value):
+        if value not in MoveType.VALID_MOVE_TYPE_VALUES:
+            raise ValueError('invalid move type value {}'.format(value))
+
+
+MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
+(
+    MoveType.HERNIA_CREATION,
+    MoveType.REPTATION,
+    MoveType.BARRIER_CROSSING,
+    MoveType.HERNIA_ANNIHILATION,
+    MoveType.HERNIA_,
+    MoveType.END_CONTRACTION,
+    MoveType.END_EXTENSION,
+    MoveType.END_WIGGLE,
+) = MoveType.MOVE_TYPES
+
+
+
 class Polymer:
     """A chain of N links."""
 
@@ -254,6 +278,7 @@ class Polymer:
             if hernia != current
         }
 
+    # TODO: What happens when the Polymer has no links?
     def link_pairs(self):
         """P.link_pairs() -> iterable of 2-element Link tuples
 
