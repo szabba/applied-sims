@@ -191,9 +191,12 @@ class Polymer:
         """
 
         reachable = set()
-        reachable.update(self.__wiggle_end_links())
 
         for p, pair in enumerate(self.link_pairs()):
+
+            reachable.update(self.__contract_taut_ends_if_possible(p, pair))
+            reachable.update(self.__extract_slack_ends_if_possible(p, pair))
+            reachable.update(self.__wiggle_end_links_if_possible(p, pair))
 
             reachable.update(self.__create_hernias_if_possible(p, pair))
 
@@ -289,20 +292,28 @@ class Polymer:
             self.substitute_pair(i, (second, first))
         } if first != second else set()
 
-    def __wiggle_end_links(self):
-        current_first = self.links()[0]
-        current_last = self.links()[-1]
-        wiggle_front = {
-            self.substitute_pair(0, (None, link))
-            for link in Link.LINKS
-            if link != current_first
+    @at_end_pairs
+    def __contract_taut_ends_if_possible(link):
+        if link.is_taut():
+            return {Link.SLACK}
+        return set()
+
+    @at_end_pairs
+    def __extract_slack_ends_if_possible(link):
+        if link.is_slack():
+            return Link.TAUT_LINKS
+        return set()
+
+    @at_end_pairs
+    def __wiggle_end_links_if_possible(link):
+        if not link.is_taut():
+            return set()
+        return {
+            taut_link
+            for taut_link
+            in Link.TAUT_LINKS
+            if taut_link != link
         }
-        wiggle_back = {
-            self.substitute_pair(len(self.links()), (link, None))
-            for link in Link.LINKS
-            if link != current_last
-        }
-        return wiggle_front | wiggle_back
 
     def __flip_at(self, i, current):
         first, second = current
