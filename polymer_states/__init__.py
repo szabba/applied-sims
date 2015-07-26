@@ -126,6 +126,16 @@ class Polymer:
 
     def __init__(self, links):
         self.__links = tuple(map(Link, links))
+        self.__polymer_transformers = (
+            self.__contract_taut_ends_if_possible,
+            self.__extract_slack_ends_if_possible,
+            self.__wiggle_end_links_if_possible,
+            self.__create_hernias_if_possible,
+            self.__repate_if_possible,
+            self.__anihilate_hernias_if_possible,
+            self.__change_hernia_bend_direction_if_possible,
+            self.__flip_bent_pair_if_possible,
+        )
 
     def __repr__(self):
         return 'Polymer([{}])'.format(', '.join(map(repr, self.links())))
@@ -178,7 +188,6 @@ class Polymer:
         return set(self.transition_rates({}).keys())
 
     # TODO: Use move rates dictionary.
-    # TODO: Separate out the moving of reptons on either end of the chain from moving those in the middle.
     def transition_rates(self, move_rates: dict, sum_with = operator.add) -> dict:
         """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
 
@@ -190,22 +199,20 @@ class Polymer:
         defaults to `operator.add`.
         """
 
-        reachable = set()
+        def reachable_by_transformin_pair(p, pair):
+            return functools.reduce(
+                operator.or_,
+                (transformer(p, pair)
+                 for transformer
+                 in self.__polymer_transformers),
+                set())
 
-        for p, pair in enumerate(self.link_pairs()):
-
-            reachable.update(self.__contract_taut_ends_if_possible(p, pair))
-            reachable.update(self.__extract_slack_ends_if_possible(p, pair))
-            reachable.update(self.__wiggle_end_links_if_possible(p, pair))
-
-            reachable.update(self.__create_hernias_if_possible(p, pair))
-
-            reachable.update(self.__repate_if_possible(p, pair))
-
-            reachable.update(self.__anihilate_hernias_if_possible(p, pair))
-            reachable.update(self.__change_hernia_bend_direction_if_possible(p, pair))
-
-            reachable.update(self.__flip_bent_pair_if_possible(p, pair))
+        reachable = functools.reduce(
+            operator.or_,
+            (reachable_by_transformin_pair(p, pair)
+             for p, pair
+             in enumerate(self.link_pairs())),
+            set())
 
         return dict.fromkeys(reachable, 0)
 
