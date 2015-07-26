@@ -261,7 +261,13 @@ class PolymerTransitionRatesTest(unittest.TestCase):
                 MoveType.END_EXTENSION,
                 MoveType.END_WIGGLE)))
 
-    ALL_OF_LENGTH_3 = Polymer.all_with_n_links(3)
+    ALL_WITH_3_LINKS = None
+
+    @classmethod
+    def all_with_3_links(cls):
+        if cls.ALL_WITH_3_LINKS is None:
+            cls.ALL_WITH_3_LINKS = Polymer.all_with_n_links(3)
+        return cls.ALL_WITH_3_LINKS
 
     def assertTransitionTypePresent(self, rates: dict, transition_type):
         """PTRT.assertTransitionTypePresent(rates, transition_type)
@@ -279,7 +285,7 @@ class PolymerTransitionRatesTest(unittest.TestCase):
                     .format(rates, transition_type))
 
     def test_transition_rates_returns_a_dictionary(self):
-        for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
+        for polymer in PolymerTransitionRatesTest.all_with_3_links():
             self.assertIsInstance(
                 polymer.transition_rates(
                     PolymerTransitionRatesTest.MOVE_RATES,
@@ -287,7 +293,7 @@ class PolymerTransitionRatesTest(unittest.TestCase):
                 dict)
 
     def test_keys_are_the_values_reachable_from_the_given_polymer(self):
-        for polymer in PolymerTransitionRatesTest.ALL_OF_LENGTH_3:
+        for polymer in PolymerTransitionRatesTest.all_with_3_links():
             transition_rates = polymer.transition_rates(
                 PolymerTransitionRatesTest.MOVE_RATES,
                 sum_with = operator.or_)
