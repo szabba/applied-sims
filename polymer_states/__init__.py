@@ -132,22 +132,47 @@ class Polymer:
         reachable = set()
         reachable.update(self.__wiggle_end_links())
 
-        for i, pair in enumerate(self.link_pairs()):
+        for p, pair in enumerate(self.link_pairs()):
 
-            if Polymer.both_slacks(pair):
-                reachable.update(self.__create_hernias_at(i, pair))
+            reachable.update(self.__create_hernias_if_possible(p, pair))
 
-            if Polymer.can_reptate(pair):
-                reachable.update(self.__reptate_at(i, pair))
+            reachable.update(self.__repate_if_possible(p, pair))
 
-            if Polymer.is_hernia(pair):
-                reachable.add(self.__annihilate_hernia_at(i))
-                reachable.update(self.__change_hernia_bend_direction(i, pair))
+            reachable.update(self.__anihilate_hernias_if_possible(p, pair))
+            reachable.update(self.__change_hernia_bend_direction_if_possible(p, pair))
 
-            if Polymer.is_bent_pair(pair):
-                reachable.add(self.__flip_at(i, pair))
+            reachable.update(self.__flip_bent_pair_if_possible(p, pair))
 
         return dict.fromkeys(reachable, 0)
+
+    def __repate_if_possible(self, p, pair):
+        if Polymer.can_reptate(pair):
+            return self.__reptate_at(p, pair)
+        return set()
+
+    def __create_hernias_if_possible(self, p, pair):
+        if Polymer.both_slacks(pair):
+            return self.__create_hernias_at(p, pair)
+        return set()
+
+    def __anihilate_hernias_if_possible(self, p, pair):
+        if Polymer.is_hernia(pair):
+            return {
+                self.__annihilate_hernia_at(p)
+            }
+        return set()
+
+    def __change_hernia_bend_direction_if_possible(self, p, pair):
+        if Polymer.is_hernia(pair):
+            return self.__change_hernia_bend_direction(p, pair)
+        return set()
+
+    def __flip_bent_pair_if_possible(self, p, pair):
+        if Polymer.is_bent_pair(pair):
+            return {
+                self.__flip_at(p, pair)
+            }
+        return set()
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
