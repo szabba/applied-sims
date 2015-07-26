@@ -201,18 +201,17 @@ class Polymer:
         `zero` should be the identify of `sum_with`.
         """
 
-        def reachable_by_transforming_pair(p, pair):
-            return functools.reduce(
-                operator.or_,
-                (transformer(p, pair) for transformer in self.__polymer_transformers),
-                set())
+        rates = {}
+        for p, pair in enumerate(self.link_pairs()):
+            for t in self.__polymer_transformers:
+                new_polymers = t(p, pair)
 
-        reachable = functools.reduce(
-            operator.or_,
-            (reachable_by_transforming_pair(p, pair) for p, pair in enumerate(self.link_pairs())),
-            set())
+                for new_polymer in new_polymers:
+                    old_rate = rates.get(new_polymer, zero)
+                    new_rate = sum_with(old_rate, zero)
+                    rates[new_polymer] = new_rate
 
-        return dict.fromkeys(reachable, zero)
+        return rates
 
     def __repate_if_possible(self, p, pair):
         if Polymer.can_reptate(pair):
