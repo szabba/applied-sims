@@ -13,11 +13,16 @@ setup(
         'Topic :: Scientific/Engineering :: Physics',
         'Intended Audience :: Other Audience',
     ],
-    install_requires=['numpy >=1.9.1,<2'],
+    install_requires=[
+        'numpy >=1.9.1,<2',
+        'scipy >=0.16.0,<0.17.0',
+        'Pillow >=2.9.0,<3',
+        'matplotlib >=1.4.3,<2',
+    ],
     packages=['polymer_states'],
     url='http://github.com/szabba/applied-sims',
     license='MPL-2.0',
     author='Karol Marcjan',
     author_email='karol.marcjan@gmail.com',
-    description=''
+    description='',
 )

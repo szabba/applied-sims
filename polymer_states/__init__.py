@@ -166,6 +166,22 @@ class Polymer:
     def __ne__(self, other):
         return not self == other
 
+    def __lt__(self, other):
+        if not isinstance(other, Polymer):
+            return NotImplemented
+        return self.links() < other.links()
+
+    def __gt__(self, other):
+        if not isinstance(other, Polymer):
+            return NotImplemented
+        return self.links() > other.links()
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __ge__(self, other):
+        return self == other or self > other
+
     @classmethod
     def all_with_n_links(cls, n):
         """Polymer.all_with_n_lins(n) -> set of Polymers
@@ -201,7 +217,7 @@ class Polymer:
         rates = dict(
             (state, state.transition_rates(move_rates, sum_with, zero))
             for state in all_states)
-        return TransitionMatrix(rates)
+        return TransitionMatrix(rates, zero)
 
     def reachable_from(self) -> set:
         """P.reachable_from() -> set
@@ -407,19 +423,17 @@ HERNIAS = {
 class TransitionMatrix:
     """A matrix of transition rates between polymer states."""
 
-    def __init__(self, rates):
+    def __init__(self, rates, zero):
         self.__size = len(rates)
         self.__rates = rates
+        self.__zero = zero
 
     def size(self):
         return self.__size
 
     def __getitem__(self, coords):
         origin, target = coords
-        try:
-            return self.__rates[origin][target]
-        except KeyError:
-            raise IndexError(coords)
+        return self.__rates.get(origin, {}).get(target, self.__zero)
 
     def states(self):
         return frozenset(self.__rates.keys())
