@@ -7,7 +7,7 @@ import unittest
 from unittest.util import safe_repr
 import operator
 
-from polymer_states import Polymer, HERNIAS, Link, MoveType
+from polymer_states import Polymer, HERNIAS, Link, MoveType, TransitionMatrix
 
 
 class SetAssertions(unittest.TestCase):
@@ -246,7 +246,7 @@ class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
         self.assertIsSubsetOf(with_end_links_changed, reachable)
 
 
-class PolymerTransitionRatesTest(unittest.TestCase):
+class TransitionRates(unittest.TestCase):
 
     MOVE_RATES = dict(
         (move_type, move_type)
@@ -259,6 +259,9 @@ class PolymerTransitionRatesTest(unittest.TestCase):
             MoveType.END_CONTRACTION,
             MoveType.END_EXTENSION,
             MoveType.END_WIGGLE))
+
+
+class PolymerTransitionRatesTest(TransitionRates):
 
     @classmethod
     def all_with_3_links(cls):
@@ -285,14 +288,14 @@ class PolymerTransitionRatesTest(unittest.TestCase):
         for polymer in PolymerTransitionRatesTest.all_with_3_links():
             self.assertIsInstance(
                 polymer.transition_rates(
-                    PolymerTransitionRatesTest.MOVE_RATES,
+                    self.MOVE_RATES,
                     sum_with=operator.or_),
                 dict)
 
     def test_keys_are_the_values_reachable_from_the_given_polymer(self):
         for polymer in PolymerTransitionRatesTest.all_with_3_links():
             transition_rates = polymer.transition_rates(
-                PolymerTransitionRatesTest.MOVE_RATES,
+                self.MOVE_RATES,
                 sum_with=operator.or_)
 
             reachable = polymer.reachable_from()
@@ -304,9 +307,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_hernia_creation_present_when_possible(self):
         polymer = Polymer([Link.SLACK, Link.SLACK])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.HERNIA_CREATION)
@@ -314,9 +316,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_hernia_annihilation_present_when_possible(self):
         polymer = Polymer([Link.UP, Link.DOWN])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.HERNIA_ANNIHILATION)
@@ -324,9 +325,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_hernia_redirection_present_when_possible(self):
         polymer = Polymer([Link.UP, Link.DOWN])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.HERNIA_REDIRECTION)
@@ -334,9 +334,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_reptation_present_when_possible(self):
         polymer = Polymer([Link.UP, Link.SLACK])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.REPTATION)
@@ -344,9 +343,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_barrier_crossing_present_when_possible(self):
         polymer = Polymer([Link.UP, Link.RIGHT])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.BARRIER_CROSSING)
@@ -354,9 +352,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_end_contraction_present_when_possible(self):
         polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.END_CONTRACTION)
@@ -364,9 +361,8 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_end_extension_present_when_possible(self):
         polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.END_EXTENSION)
@@ -374,15 +370,14 @@ class PolymerTransitionRatesTest(unittest.TestCase):
     def test_end_wiggle_present_when_possible(self):
         polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
 
-        transition_rates = polymer.transition_rates(
-            PolymerTransitionRatesTest.MOVE_RATES,
-            operator.or_)
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
 
         self.assertTransitionTypePresent(transition_rates,
                                          MoveType.END_WIGGLE)
 
 
-class PolymerPossibleConfigurations(unittest.TestCase):
+class PolymerPossibleConfigurationsTest(unittest.TestCase):
 
     def test_unit_polymer_contains_all_types_of_links(self):
         length = 1
@@ -408,3 +403,47 @@ class PolymerPossibleConfigurations(unittest.TestCase):
                                 for polymer in polymers))
 
     # TODO: Build up a TransitionMatrix.
+
+
+class PolymerTransitionMatrixTest(TransitionRates):
+
+    def test_can_create_a_transition_matrix(self):
+        polymer_length = 3
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        self.assertIsInstance(matrix, TransitionMatrix)
+
+    def test_transition_matrix_has_right_dimmensions(self):
+        polymer_length = 3
+        state_count = len(Polymer.all_with_n_links(polymer_length))
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        self.assertEqual(matrix.size(), state_count)
+
+    def test_transition_matrix_indexes(self):
+        polymer_length = 2
+        state_count = len(Polymer.all_with_n_links(polymer_length))
+        first_state = Polymer([Link.UP, Link.RIGHT])
+        second_state = Polymer([Link.SLACK, Link.RIGHT])
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        transition_rate = matrix[first_state, second_state]
+
+        self.assertEqual(transition_rate,
+                         self.MOVE_RATES[MoveType.END_CONTRACTION])
+
+    def test_transition_matrix_states(self):
+        polymer_length = 3
+        all_states = Polymer.all_with_n_links(polymer_length)
+
+        matrix = Polymer.transition_matrix(polymer_length, self.MOVE_RATES, operator.or_)
+
+        matrix_states = matrix.states()
+
+        self.assertEqual(all_states, matrix_states)

@@ -3,7 +3,7 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-__all__ = ['Link', 'MoveType', 'Polymer', 'HERNIAS', 'HERNIA_PAIRS']
+__all__ = ['Link', 'MoveType', 'Polymer', 'HERNIAS', 'HERNIA_PAIRS', 'TransitionMatrix']
 
 
 import functools
@@ -119,14 +119,14 @@ def at_end_pairs(move_type: MoveType):
             new_links = f(link)
             new_pairs = {
                 tuple([
-                          old_link if old_link is None else new_link
-                          for old_link
-                          in pair
-                          ])
+                    old_link if old_link is None else new_link
+                    for old_link
+                    in pair
+                ])
                 for new_link
                 in new_links
             }
-            new_polymers =  {
+            new_polymers = {
                 self.substitute_pair(p, new_pair)
                 for new_pair
                 in new_pairs
@@ -137,7 +137,7 @@ def at_end_pairs(move_type: MoveType):
 
 
 class Polymer:
-    """A chain of N links."""
+    """A state of an N-links chain"""
 
     def __init__(self, links):
         self.__links = tuple(map(Link, links))
@@ -159,7 +159,8 @@ class Polymer:
         return hash(self.links())
 
     def __eq__(self, other):
-        if not isinstance(other, Polymer): return False
+        if not isinstance(other, Polymer):
+            return False
         return self.links() == other.links()
 
     def __ne__(self, other):
@@ -194,6 +195,14 @@ class Polymer:
 
         return cls([Link.SLACK] * link_count)
 
+    @classmethod
+    def transition_matrix(cls, link_count, move_rates, sum_with=operator.add, zero=0):
+        all_states = Polymer.all_with_n_links(link_count)
+        rates = dict(
+            (state, state.transition_rates(move_rates, sum_with, zero))
+            for state in all_states)
+        return TransitionMatrix(rates)
+
     def reachable_from(self) -> set:
         """P.reachable_from() -> set
 
@@ -202,7 +211,7 @@ class Polymer:
         """
         return set(self.transition_rates({}).keys())
 
-    def transition_rates(self, move_rates: dict, sum_with = operator.add, zero = 0) -> dict:
+    def transition_rates(self, move_rates: dict, sum_with=operator.add, zero=0) -> dict:
         """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
 
         Calculates the transition rates to all states reachable from the current
@@ -393,3 +402,24 @@ HERNIAS = {
     Polymer([Link.UP, Link.DOWN]), Polymer([Link.DOWN, Link.UP]),
     Polymer([Link.LEFT, Link.RIGHT]), Polymer([Link.RIGHT, Link.LEFT]),
 }
+
+
+class TransitionMatrix:
+    """A matrix of transition rates between polymer states."""
+
+    def __init__(self, rates):
+        self.__size = len(rates)
+        self.__rates = rates
+
+    def size(self):
+        return self.__size
+
+    def __getitem__(self, coords):
+        origin, target = coords
+        try:
+            return self.__rates[origin][target]
+        except KeyError:
+            raise IndexError(coords)
+
+    def states(self):
+        return frozenset(self.__rates.keys())
