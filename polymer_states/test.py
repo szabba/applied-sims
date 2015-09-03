@@ -13,13 +13,13 @@ from polymer_states import Polymer, HERNIAS, Link, MoveType
 class SetAssertions(unittest.TestCase):
     """Mix-in providing assertions related to sets"""
 
-    STANDARD_MSG_TEMPLATE = """{} is not a subset of {}, missing {}"""
+    NOT_SUBSET_OF_MSG_TEMPLATE = """{} is not a subset of {}, missing {}"""
 
     def assertIsSubsetOf(self, subset: set, superset: set, msg=None):
         """Asserts that one set is a subset of another one."""
         if not subset.issubset(superset):
             missing = subset.difference(superset)
-            standardMsg = self.STANDARD_MSG_TEMPLATE\
+            standardMsg = self.NOT_SUBSET_OF_MSG_TEMPLATE\
                 .format(safe_repr(subset),
                         safe_repr(superset),
                         safe_repr(missing))
