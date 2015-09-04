@@ -3,6 +3,9 @@
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+__all__ = ['Link', 'MoveType', 'Polymer', 'HERNIAS', 'HERNIA_PAIRS', 'TransitionMatrix']
+
+
 import functools
 import operator
 
@@ -12,9 +15,13 @@ class Link(int):
 
     VALID_LINK_VALUES = {1 << i for i in range(5)}
 
-    def __init__(self, value):
+    def __new__(cls, value):
         if value not in Link.VALID_LINK_VALUES:
             raise ValueError("invalid link value {}".format(value))
+        return int.__new__(Link, value)
+
+    def __init__(self, value):
+        pass
 
     def __repr__(self):
         return {
@@ -60,25 +67,90 @@ Link.PERPENDICULAR_PAIRS = {
 }
 
 
-def swap_elements(t, i, j):
-    return tuple(
-        elem if k not in (i, j) else
-        t[i] if k == j else t[j]
-        for k, elem in enumerate(t))
+class MoveType(int):
+    """A type of move with which we can associate a transition rate."""
+
+    VALID_MOVE_TYPE_VALUES = {1 << i for i in range(8)}
+
+    def __new__(cls, value):
+        if value not in MoveType.VALID_MOVE_TYPE_VALUES:
+            raise ValueError("invalid move type value {}".format(value))
+        return int.__new__(MoveType, value)
+
+    def __init__(self, value):
+        pass
+
+    def __repr__(self):
+        return {
+            MoveType.HERNIA_CREATION: 'MoveType.HERNIA_CREATION',
+            MoveType.REPTATION: 'MoveType.REPTATION',
+            MoveType.BARRIER_CROSSING: 'MoveType.BARRIER_CROSSING',
+            MoveType.HERNIA_ANNIHILATION: 'MoveType.HERNIA_ANNIHILATION',
+            MoveType.HERNIA_REDIRECTION: 'MoveType.HERNIA_REDIRECTION',
+            MoveType.END_CONTRACTION: 'MoveType.END_CONTRACTION',
+            MoveType.END_EXTENSION: 'MoveType.END_EXTENSION',
+            MoveType.END_WIGGLE: 'MoveType.END_WIGGLE',
+        }[self]
+
+
+MoveType.MOVE_TYPES = {MoveType(i) for i in MoveType.VALID_MOVE_TYPE_VALUES}
+(
+    MoveType.HERNIA_CREATION,
+    MoveType.REPTATION,
+    MoveType.BARRIER_CROSSING,
+    MoveType.HERNIA_ANNIHILATION,
+    MoveType.HERNIA_REDIRECTION,
+    MoveType.END_CONTRACTION,
+    MoveType.END_EXTENSION,
+    MoveType.END_WIGGLE,
+) = MoveType.MOVE_TYPES
+
+
+def at_end_pairs(move_type: MoveType):
+    """A decorator turning `Link -> set of Links` functions into `Polymer`
+    methods that transform the end links of a chain.
+    """
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(self, p, pair):
+            if not Polymer.is_edge_pair(pair):
+                return set(), move_type
+            link = [l for l in pair if l is not None][0]
+            new_links = f(link)
+            new_pairs = {
+                tuple([
+                    old_link if old_link is None else new_link
+                    for old_link
+                    in pair
+                ])
+                for new_link
+                in new_links
+            }
+            new_polymers = {
+                self.substitute_pair(p, new_pair)
+                for new_pair
+                in new_pairs
+            }
+            return new_polymers, move_type
+        return wrapper
+    return decorator
 
 
 class Polymer:
-    """A chain of N links."""
+    """A state of an N-links chain"""
 
     def __init__(self, links):
-
-        links = tuple(links)
-
-        if len(links) < 1:
-            raise ValueError(("polymer chain must contain at least one "
-                              + "link, {} given").format(len(links)))
-
         self.__links = tuple(map(Link, links))
+        self.__polymer_transformers = (
+            self.__contract_taut_ends_if_possible,
+            self.__extract_slack_ends_if_possible,
+            self.__wiggle_end_links_if_possible,
+            self.__create_hernias_if_possible,
+            self.__repate_if_possible,
+            self.__annihilate_hernias_if_possible,
+            self.__change_hernia_bend_direction_if_possible,
+            self.__flip_bent_pair_if_possible,
+        )
 
     def __repr__(self):
         return 'Polymer([{}])'.format(', '.join(map(repr, self.links())))
@@ -87,11 +159,28 @@ class Polymer:
         return hash(self.links())
 
     def __eq__(self, other):
-        if not isinstance(other, Polymer): return False
+        if not isinstance(other, Polymer):
+            return False
         return self.links() == other.links()
 
     def __ne__(self, other):
         return not self == other
+
+    def __lt__(self, other):
+        if not isinstance(other, Polymer):
+            return NotImplemented
+        return self.links() < other.links()
+
+    def __gt__(self, other):
+        if not isinstance(other, Polymer):
+            return NotImplemented
+        return self.links() > other.links()
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __ge__(self, other):
+        return self == other or self > other
 
     @classmethod
     def all_with_n_links(cls, n):
@@ -122,26 +211,78 @@ class Polymer:
 
         return cls([Link.SLACK] * link_count)
 
-    def reachable_from(self):
-        reachable = {self}
-        reachable.update(self.__wiggle_end_links())
+    @classmethod
+    def transition_matrix(cls, link_count, move_rates, sum_with=operator.add, zero=0):
+        all_states = Polymer.all_with_n_links(link_count)
+        rates = dict(
+            (state, state.transition_rates(move_rates, sum_with, zero))
+            for state in all_states)
+        return TransitionMatrix(rates, zero)
 
-        for i, pair in enumerate(self.link_pairs()):
+    def reachable_from(self) -> set:
+        """P.reachable_from() -> set
 
-            if Polymer.both_slacks(pair):
-                reachable.update(self.__create_hernias_at(i, pair))
+        Returns the set of polymers that this one can transform into in a single
+        step.
+        """
+        return set(self.transition_rates({}).keys())
 
-            if Polymer.can_reptate(pair):
-                reachable.update(self.__reptate_at(i, pair))
+    def transition_rates(self, move_rates: dict, sum_with=operator.add, zero=0) -> dict:
+        """P.transition_rates(move_rates[, sum_with]) -> dict with polymer keys
 
-            if Polymer.is_hernia(pair):
-                reachable.add(self.__annihilate_hernia_at(i))
-                reachable.update(self.__change_hernia_bend_direction(i, pair))
+        Calculates the transition rates to all states reachable from the current
+        one in one step, given that `move_rates` is a dictionary mapping kinds
+        of moves to rates.
 
-            if Polymer.is_bent_pair(pair):
-                reachable.add(self.__flip_at(i, pair))
+        The rates for different moves are combined using `sum_with` which
+        defaults to `operator.add`. It must be associative and commutative.
 
-        return reachable - {self}
+        `zero` should be the identify of `sum_with`. It will be the assumed
+        transition rate for moves that don't have one specified in `move_rates`.
+        """
+
+        rates = {}
+        for p, pair in enumerate(self.link_pairs()):
+            for t in self.__polymer_transformers:
+                new_polymers, move_type = t(p, pair)
+                rate_diff = move_rates.get(move_type, zero)
+
+                for new_polymer in new_polymers:
+                    old_rate = rates.get(new_polymer, zero)
+                    new_rate = sum_with(old_rate, rate_diff)
+                    rates[new_polymer] = new_rate
+
+        return rates
+
+    def __repate_if_possible(self, p, pair):
+        alternatives = set()
+        if Polymer.can_reptate(pair):
+            alternatives = self.__reptate_at(p, pair)
+        return alternatives, MoveType.REPTATION
+
+    def __create_hernias_if_possible(self, p, pair):
+        alternatives = set()
+        if Polymer.both_slacks(pair):
+            alternatives = self.__create_hernias_at(p, pair)
+        return alternatives, MoveType.HERNIA_CREATION
+
+    def __annihilate_hernias_if_possible(self, p, pair):
+        alternatives = set()
+        if Polymer.is_hernia(pair):
+            alternatives = {self.__annihilate_hernia_at(p)}
+        return alternatives, MoveType.HERNIA_ANNIHILATION
+
+    def __change_hernia_bend_direction_if_possible(self, p, pair):
+        alternatives = set()
+        if Polymer.is_hernia(pair):
+            alternatives = self.__change_hernia_bend_direction(p, pair)
+        return alternatives, MoveType.HERNIA_REDIRECTION
+
+    def __flip_bent_pair_if_possible(self, p, pair):
+        alternatives = set()
+        if Polymer.is_bent_pair(pair):
+            alternatives = {self.__flip_at(p, pair)}
+        return alternatives, MoveType.BARRIER_CROSSING
 
     def contains_hernia(self):
         """P.contains_hernia() -> a bool
@@ -158,12 +299,20 @@ class Polymer:
         """
         return any(Polymer.both_slacks(pair) for pair in self.link_pairs())
 
-    def substitute_pair(self, pair_number, replacement_pair):
+    def substitute_pair(self, p, replacement_pair):
+        """P.substitute_pair(p, replacement_pair) -> Polymer
+
+        Produces a polymer in which the `p`-th pair is substituted with the one
+        specified.
+
+        The pair index `p` corresponds to the position of a pair in
+        `P.link_pairs()`.
+        """
         first, second = replacement_pair
         vlinks = (None, ) + self.links() + (None, )
         new_vlinks = [
-            first if i == pair_number else
-            second if i - 1 == pair_number else
+            first if i == p else
+            second if i - 1 == p else
             link
             for i, link in enumerate(vlinks)
         ]
@@ -189,18 +338,20 @@ class Polymer:
             self.substitute_pair(i, (second, first))
         } if first != second else set()
 
-    def __wiggle_end_links(self):
-        wiggle_front = {
-            self.substitute_pair(0, (None, link))
-            for link in Link.LINKS
-            if link != self.links()[0]
-        }
-        wiggle_back = {
-            self.substitute_pair(len(self.links()), (link, None))
-            for link in Link.LINKS
-            if link != self.links()[-1]
-        }
-        return wiggle_front | wiggle_back
+    @at_end_pairs(MoveType.END_CONTRACTION)
+    def __contract_taut_ends_if_possible(link):
+        return {Link.SLACK} if link.is_taut() else set()
+
+    @at_end_pairs(MoveType.END_EXTENSION)
+    def __extract_slack_ends_if_possible(link):
+        return Link.TAUT_LINKS if link.is_slack() else set()
+
+    @at_end_pairs(MoveType.END_WIGGLE)
+    def __wiggle_end_links_if_possible(link):
+        return {
+            taut_link for taut_link in Link.TAUT_LINKS
+            if taut_link != link
+        } if link.is_taut() else set()
 
     def __flip_at(self, i, current):
         first, second = current
@@ -213,10 +364,28 @@ class Polymer:
             if hernia != current
         }
 
+    # TODO: What happens when the Polymer has no links?
     def link_pairs(self):
+        """P.link_pairs() -> iterable of 2-element Link tuples
+
+        Returns all pairs of consecutive links. As a special case, the first
+        pair contains a None instead of the first link, and the last pair
+        contains a None instead of the last link.
+
+        The indices accepted by P.substitute_pair correspond to the position in
+        this iterator.
+        """
         return zip((None, ) + self.links(), self.links() + (None, ))
 
+    def __inner_pairs(self):
+        return tuple(self.link_pairs())[1:-1]
+
+    def __outer_pairs(self):
+        return ((None, self.links[0]),
+                (self.links[-1], None))
+
     def links(self):
+        """P.links() -> tuple of Links, starting from the chain's head """
         return self.__links
 
     @staticmethod
@@ -249,3 +418,22 @@ HERNIAS = {
     Polymer([Link.UP, Link.DOWN]), Polymer([Link.DOWN, Link.UP]),
     Polymer([Link.LEFT, Link.RIGHT]), Polymer([Link.RIGHT, Link.LEFT]),
 }
+
+
+class TransitionMatrix:
+    """A matrix of transition rates between polymer states."""
+
+    def __init__(self, rates, zero):
+        self.__size = len(rates)
+        self.__rates = rates
+        self.__zero = zero
+
+    def size(self):
+        return self.__size
+
+    def __getitem__(self, coords):
+        origin, target = coords
+        return self.__rates.get(origin, {}).get(target, self.__zero)
+
+    def states(self):
+        return frozenset(self.__rates.keys())

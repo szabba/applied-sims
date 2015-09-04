@@ -1,22 +1,28 @@
 #  This Source Code Form is subject to the terms of the Mozilla Public
 #  License, v. 2.0. If a copy of the MPL was not distributed with this
 #  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import functools
 
 import unittest
 from unittest.util import safe_repr
+import operator
 
-from polymer_states import Polymer, HERNIAS, Link
+from polymer_states import Polymer, HERNIAS, Link, MoveType, TransitionMatrix
 
 
 class SetAssertions(unittest.TestCase):
     """Mix-in providing assertions related to sets"""
 
-    def assertIsSubsetOf(self, subset, superset, msg=None):
+    NOT_SUBSET_OF_MSG_TEMPLATE = """{} is not a subset of {}, missing {}"""
+
+    def assertIsSubsetOf(self, subset: set, superset: set, msg=None):
         """Asserts that one set is a subset of another one."""
         if not subset.issubset(superset):
-            standardMsg = '{} is not a subset of {}'.format(
-                safe_repr(subset), safe_repr(superset))
+            missing = subset.difference(superset)
+            standardMsg = self.NOT_SUBSET_OF_MSG_TEMPLATE\
+                .format(safe_repr(subset),
+                        safe_repr(superset),
+                        safe_repr(missing))
             self.fail(self._formatMessage(msg, standardMsg))
 
 
@@ -33,15 +39,6 @@ class LinkTest(unittest.TestCase):
     def test_link_equal_to_its_value(self):
         for valid_link_value in Link.VALID_LINK_VALUES:
             self.assertEqual(Link(valid_link_value), valid_link_value)
-
-
-class PolymerConstructionTest(unittest.TestCase):
-
-    def test_value_error_for_zero_links(self):
-        self.assertRaises(ValueError, Polymer, [])
-
-    def test_value_error_for_zero_links_when_curled_up(self):
-        self.assertRaises(ValueError, Polymer.all_curled_up, 0)
 
 
 class PolymerEqualityTest(unittest.TestCase):
@@ -92,7 +89,7 @@ class PolymerModificationTest(unittest.TestCase):
                          Polymer([Link.SLACK, Link.DOWN, Link.UP, Link.SLACK]))
 
 
-class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
+class PolymerReachabilityTest(SetAssertions, unittest.TestCase):
 
     def test_polymer_reachable_returns_set(self):
         polymer = Polymer.all_curled_up(3)
@@ -122,7 +119,21 @@ class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
         self.assertFalse(polymer_wihtout_slack_pair.contains_slack_pair())
 
     def test_polymer_reachable_set_does_not_contain_self(self):
-        polymer = Polymer.all_curled_up(3)
+        # All kinds of legal moves are possible in the polymer given below.
+        polymer = Polymer([
+            # Starts with a slack link
+            Link.SLACK,
+            # Contains a taut-slack pair
+            Link.RIGHT, Link.SLACK,
+            # Contains two slack links in a single cell
+            Link.SLACK, Link.SLACK,
+            # Contains a three cells "bent knee"
+            Link.RIGHT, Link.UP,
+            # Contains a hernia
+            Link.RIGHT, Link.LEFT,
+            # Ends with a taut link
+            Link.UP
+        ])
 
         reachable = polymer.reachable_from()
 
@@ -235,7 +246,138 @@ class PolymerReachableFromTest(SetAssertions, unittest.TestCase):
         self.assertIsSubsetOf(with_end_links_changed, reachable)
 
 
-class PolymerPossibleConfigurations(unittest.TestCase):
+class TransitionRates(unittest.TestCase):
+
+    MOVE_RATES = dict(
+        (move_type, move_type)
+        for move_type in (
+            MoveType.HERNIA_CREATION,
+            MoveType.REPTATION,
+            MoveType.BARRIER_CROSSING,
+            MoveType.HERNIA_ANNIHILATION,
+            MoveType.HERNIA_REDIRECTION,
+            MoveType.END_CONTRACTION,
+            MoveType.END_EXTENSION,
+            MoveType.END_WIGGLE))
+
+
+class PolymerTransitionRatesTest(TransitionRates):
+
+    @classmethod
+    def all_with_3_links(cls):
+        if not hasattr(cls, 'ALL_WITH_3_LINKS'):
+            cls.ALL_WITH_3_LINKS = Polymer.all_with_n_links(3)
+        return cls.ALL_WITH_3_LINKS
+
+    def assertTransitionTypePresent(self, rates: dict, transition_type):
+        """PTRT.assertTransitionTypePresent(rates, transition_type)
+
+        Asserts that the result of calling `Polymer.transition_rates` with
+        `MOVE_RATES` and `operator.op_` contains a transition of type
+        `transition_type`.
+        """
+
+        all_types = functools.reduce(operator.or_, rates.values(), 0)
+
+        if not (all_types & transition_type):
+            self.fail(
+                "{} doesn't contain a transition of type {}"
+                .format(rates, transition_type))
+
+    def test_transition_rates_returns_a_dictionary(self):
+        for polymer in PolymerTransitionRatesTest.all_with_3_links():
+            self.assertIsInstance(
+                polymer.transition_rates(
+                    self.MOVE_RATES,
+                    sum_with=operator.or_),
+                dict)
+
+    def test_keys_are_the_values_reachable_from_the_given_polymer(self):
+        for polymer in PolymerTransitionRatesTest.all_with_3_links():
+            transition_rates = polymer.transition_rates(
+                self.MOVE_RATES,
+                sum_with=operator.or_)
+
+            reachable = polymer.reachable_from()
+
+            self.assertEqual(
+                set(transition_rates.keys()),
+                reachable)
+
+    def test_hernia_creation_present_when_possible(self):
+        polymer = Polymer([Link.SLACK, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.HERNIA_CREATION)
+
+    def test_hernia_annihilation_present_when_possible(self):
+        polymer = Polymer([Link.UP, Link.DOWN])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.HERNIA_ANNIHILATION)
+
+    def test_hernia_redirection_present_when_possible(self):
+        polymer = Polymer([Link.UP, Link.DOWN])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.HERNIA_REDIRECTION)
+
+    def test_reptation_present_when_possible(self):
+        polymer = Polymer([Link.UP, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.REPTATION)
+
+    def test_barrier_crossing_present_when_possible(self):
+        polymer = Polymer([Link.UP, Link.RIGHT])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.BARRIER_CROSSING)
+
+    def test_end_contraction_present_when_possible(self):
+        polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.END_CONTRACTION)
+
+    def test_end_extension_present_when_possible(self):
+        polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.END_EXTENSION)
+
+    def test_end_wiggle_present_when_possible(self):
+        polymer = Polymer([Link.RIGHT, Link.SLACK, Link.SLACK])
+
+        transition_rates = polymer.transition_rates(self.MOVE_RATES,
+                                                    operator.or_)
+
+        self.assertTransitionTypePresent(transition_rates,
+                                         MoveType.END_WIGGLE)
+
+
+class PolymerPossibleConfigurationsTest(unittest.TestCase):
 
     def test_unit_polymer_contains_all_types_of_links(self):
         length = 1
@@ -260,6 +402,48 @@ class PolymerPossibleConfigurations(unittest.TestCase):
             self.assertTrue(all(isinstance(polymer, Polymer)
                                 for polymer in polymers))
 
-    # TODO: Make reachable_from return a dict indexed by polymers and containing sets of probability rates.
     # TODO: Build up a TransitionMatrix.
-    # TODO: Change Polymer internals to deal with a wall and pore.
+
+
+class PolymerTransitionMatrixTest(TransitionRates):
+
+    def test_can_create_a_transition_matrix(self):
+        polymer_length = 3
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        self.assertIsInstance(matrix, TransitionMatrix)
+
+    def test_transition_matrix_has_right_dimmensions(self):
+        polymer_length = 3
+        state_count = len(Polymer.all_with_n_links(polymer_length))
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        self.assertEqual(matrix.size(), state_count)
+
+    def test_transition_matrix_indexes(self):
+        polymer_length = 2
+        state_count = len(Polymer.all_with_n_links(polymer_length))
+        first_state = Polymer([Link.UP, Link.RIGHT])
+        second_state = Polymer([Link.SLACK, Link.RIGHT])
+
+        matrix = Polymer.transition_matrix(
+            polymer_length, self.MOVE_RATES, operator.or_)
+
+        transition_rate = matrix[first_state, second_state]
+
+        self.assertEqual(transition_rate,
+                         self.MOVE_RATES[MoveType.END_CONTRACTION])
+
+    def test_transition_matrix_states(self):
+        polymer_length = 3
+        all_states = Polymer.all_with_n_links(polymer_length)
+
+        matrix = Polymer.transition_matrix(polymer_length, self.MOVE_RATES, operator.or_)
+
+        matrix_states = matrix.states()
+
+        self.assertEqual(all_states, matrix_states)
