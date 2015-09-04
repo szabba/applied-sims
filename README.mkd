@@ -4,6 +4,8 @@
 
 * Python 3
 * Use virtualenv for a smooth experience
+* You will need C and Fortran compilers. The one's from GCC should work without
+  issues on Linux.
 
 ## Generate states for all polymers with n links
 
