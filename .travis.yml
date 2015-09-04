@@ -3,6 +3,9 @@ python:
   - "3.2"
   - "3.3"
   - "3.4"
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install gfortran
 install:
   - pip install .
 script:
