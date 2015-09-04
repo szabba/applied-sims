@@ -11,6 +11,23 @@
 $ python -m polymer_states.generate_states n
 ```
 
+## Preview the transition matrix for n-link polymers
+
+```bash
+$ python -m polymer_states.generate_matrix n h c
+```
+
+The meaning of parameters `h` and `c` is as in [Stochastic lattice models for
+the dynamics of linear polymers][article] by van Leeuwen and Drzewiński.
+
+[article]: http://arxiv.org/abs/1004.2370
+
+## Save the transition matrix for n-link polymers as an image
+
+```bash
+$ python -m polymer_states.generate_matrix --out image.png n h c
+```
+
 ## License and copyright
 
 All source code is covered by the Mozilla Public License 2.0.

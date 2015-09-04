@@ -24,7 +24,6 @@ def generate_image(matrix):
         for j, target in enumerate(state_order):
             image[i, j] = matrix[origin, target]
 
-    print(image.max())
     image /= image.max()
     return image
 
